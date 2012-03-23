@@ -14,10 +14,18 @@ elf::section_name_to_type(const char *name, section_type *out)
                 const char *name;
                 section_type type;
         } sections[] = {
-                {".debug_info",     section_type::info},
                 {".debug_abbrev",   section_type::abbrev},
+                {".debug_aranges",  section_type::aranges},
+                {".debug_frame",    section_type::frame},
+                {".debug_info",     section_type::info},
+                {".debug_line",     section_type::line},
+                {".debug_loc",      section_type::loc},
+                {".debug_macinfo",  section_type::macinfo},
+                {".debug_pubnames", section_type::pubnames},
                 {".debug_pubtypes", section_type::pubtypes},
+                {".debug_ranges",   section_type::ranges},
                 {".debug_str",      section_type::str},
+                {".debug_types",    section_type::types},
         };
 
         for (auto &sec : sections) {

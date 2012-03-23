@@ -46,10 +46,18 @@ public:
  */
 enum class section_type
 {
-        info,
         abbrev,
+        aranges,
+        frame,
+        info,
+        line,
+        loc,
+        macinfo,
+        pubnames,
         pubtypes,
+        ranges,
         str,
+        types,
 };
 
 std::string
@@ -57,6 +65,13 @@ to_string(section_type v);
 
 /**
  * A loader for DWARF data.
+ *
+ * XXX Alternatively, this could be callback-based and lazily load
+ * sections.  Users would construct dwarf directly with a lazy loader
+ * and the ELF library could easily provide a lazy loader.  OTOH,
+ * maybe I'd just be recreating demand paging.  Though, a lazy loader
+ * would be easier to implement with open/read.  It would also address
+ * lifetime issues.
  */
 class loader
 {
