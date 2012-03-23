@@ -79,15 +79,25 @@ cursor::offset()
 void
 cursor::string(std::string &out)
 {
+        size_t size;
+        const char *p = this->string(&size);
+        out.resize(size);
+        memmove(&out.front(), p, size);
+}
+
+const char *
+cursor::string(size_t *size_out)
+{
         // Scan string size
         const char *p = pos;
-        while (p < sec->end && *p)
-                p++;
-        if (p == sec->end)
+        while (pos < sec->end && *pos)
+                pos++;
+        if (pos == sec->end)
                 throw format_error("unterminated string");
-        out.resize(p - pos);
-        memmove(&out.front(), pos, p - pos);
-        pos = p + 1;
+        if (size_out)
+                *size_out = pos - p;
+        pos++;
+        return p;
 }
 
 void

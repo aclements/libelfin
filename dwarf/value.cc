@@ -1,5 +1,7 @@
 #include "internal.hh"
 
+#include <cstring>
+
 using namespace std;
 
 DWARFPP_BEGIN_NAMESPACE
@@ -157,28 +159,35 @@ value::as_reference() const
 void
 value::as_string(string &buf) const
 {
-        cursor cur(cu->subsec, offset);
-        switch (form) {
-        case DW_FORM::string:
-                cur.string(buf);
-                return;
-        case DW_FORM::strp: {
-                sec_offset off = cur.offset();
-                cursor scur(cu->file->get_sec_str(), off);
-                scur.string(buf);
-                return;
-        }
-        default:
-                throw value_type_mismatch("cannot read " + to_string(typ) + " as string");
-        }
+        size_t size;
+        const char *p = as_string(&size);
+        buf.resize(size);
+        memmove(&buf.front(), p, size);
 }
 
 string
 value::as_string() const
 {
-        string buf;
-        as_string(buf);
-        return buf;
+        size_t size;
+        const char *s = as_string(&size);
+        return string(s, size);
+}
+
+const char *
+value::as_string(size_t *size_out) const
+{
+        cursor cur(cu->subsec, offset);
+        switch (form) {
+        case DW_FORM::string:
+                return cur.string(size_out);
+        case DW_FORM::strp: {
+                sec_offset off = cur.offset();
+                cursor scur(cu->file->get_sec_str(), off);
+                return scur.string(size_out);
+        }
+        default:
+                throw value_type_mismatch("cannot read " + to_string(typ) + " as string");
+        }
 }
 
 void

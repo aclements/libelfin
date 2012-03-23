@@ -396,8 +396,26 @@ public:
 
         die as_reference() const;
 
+        /**
+         * Return this value as a string.
+         */
         std::string as_string() const;
+
+        /**
+         * Fill the given string buffer with the string value of this
+         * value.  This is useful to minimize allocation when reading
+         * several string-type values.
+         */
         void as_string(std::string &buf) const;
+
+        /**
+         * Return this value as a NUL-terminated character string.
+         * The returned pointer points directly into the section data,
+         * so the caller must ensure that remains valid as long as the
+         * data is in use.  *size_out, if not NULL, is set to the
+         * length of the returned string without the NUL-terminator.
+         */
+        const char *as_string(size_t *size_out) const;
 
 private:
         friend class die;
