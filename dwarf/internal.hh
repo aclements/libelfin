@@ -91,11 +91,17 @@ struct cursor
         sec_offset offset();
         void string(std::string &out);
 
+        void
+        ensure(uint64_t bytes)
+        {
+                if ((uint64_t)(sec->end - pos) < bytes)
+                        underflow();
+        }
+
         template<typename T>
         T fixed()
         {
-                if ((size_t)(sec->end - pos) < sizeof(T))
-                        underflow();
+                ensure(sizeof(T));
                 T val = *(T*)pos;
                 pos += sizeof(T);
                 return val;

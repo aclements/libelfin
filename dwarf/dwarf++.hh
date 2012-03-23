@@ -360,7 +360,14 @@ public:
 
         uint64_t as_address() const;
 
-        // XXX block
+        /**
+         * Return this value as a block.  The returned pointer points
+         * directly into the section data, so the caller must ensure
+         * that remains valid as long as the data is in use.
+         * *size_out is set to the length of the returned block, in
+         * bytes.
+         */
+        const void *as_block(size_t *size_out) const;
 
         uint64_t as_uconstant() const;
 
@@ -375,6 +382,7 @@ public:
         die as_reference() const;
 
         std::string as_string() const;
+        void as_string(std::string &buf) const;
 
 private:
         friend class die;
