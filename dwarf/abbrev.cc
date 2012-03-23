@@ -19,6 +19,7 @@ resolve_type(DW_AT name, DW_FORM form)
         case DW_FORM::data2:
         case DW_FORM::data4:
         case DW_FORM::data8:
+                return value::type::constant;
         case DW_FORM::udata:
                 return value::type::uconstant;
         case DW_FORM::sdata:

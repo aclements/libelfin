@@ -290,10 +290,18 @@ public:
 };
 
 /**
- * The value of a DIE attribute.  This is logically a union of many
- * different types.  Each type has a corresponding as_* methods that
- * will return the value as that type or throw value_type_mismatch if
- * the attribute is not of the requested type.
+ * The value of a DIE attribute.
+ *
+ * This is logically a union of many different types.  Each type has a
+ * corresponding as_* methods that will return the value as that type
+ * or throw value_type_mismatch if the attribute is not of the
+ * requested type.
+ *
+ * Values of "constant" type are somewhat ambiguous and
+ * context-dependent.  Constant forms with specified signed-ness have
+ * type "uconstant" or "sconstant", while other constant forms have
+ * type "constant".  If the value's type is "constant", it can be
+ * retrieved using either as_uconstant or as_sconstant.
  */
 class value
 {
@@ -303,6 +311,7 @@ public:
                 invalid,
                 address,
                 block,
+                constant,
                 uconstant,
                 sconstant,
                 exprloc,
@@ -353,6 +362,7 @@ public:
         // XXX block
 
         uint64_t as_uconstant() const;
+
         int64_t as_sconstant() const;
 
         // XXX expression
