@@ -196,4 +196,39 @@ value::resolve_indirect(DW_AT name)
         offset = c.section_offset();
 }
 
+string
+to_string(const value &v)
+{
+        switch (v.get_type()) {
+        case value::type::invalid:
+                return "<invalid value type>";
+        case value::type::address:
+                return "0x" + to_hex(v.as_address());
+        case value::type::block: {
+                size_t size;
+                const char *b = (const char*)v.as_block(&size);
+                string res = ::to_string(size) + " byte block:";
+                for (size_t pos = 0; pos < size; ++pos) {
+                        res += ' ';
+                        res += to_hex(b[pos]);
+                }
+                return res;
+        }
+        case value::type::constant:
+                return "0x" + to_hex(v.as_uconstant());
+        case value::type::uconstant:
+                return ::to_string(v.as_uconstant());
+        case value::type::sconstant:
+                return ::to_string(v.as_sconstant());
+        case value::type::flag:
+                return v.as_flag() ? "true" : "false";
+        case value::type::reference:
+                return "<0x" + to_hex(v.as_reference().get_section_offset()) + ">";
+        case value::type::string:
+                return v.as_string();
+        default:
+                return "<to_string of " + to_string(v.get_type()) + " not implemented>";
+        }
+}
+
 DWARFPP_END_NAMESPACE

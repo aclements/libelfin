@@ -405,6 +405,9 @@ private:
 std::string
 to_string(value::type v);
 
+std::string
+to_string(const value &v);
+
 DWARFPP_END_NAMESPACE
 
 #endif

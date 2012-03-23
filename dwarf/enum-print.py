@@ -50,6 +50,8 @@ def do_top_level(toks, ns=[]):
             toks.pop(0)
             toks.pop(0)
             typ = do_qname(toks)
+            if typ not in enums:
+                continue
             arg = toks.pop(0)
             assert toks[0] == ")"
 
