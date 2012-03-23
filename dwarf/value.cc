@@ -43,4 +43,19 @@ value::as_reference() const
         return d;
 }
 
+void
+value::resolve_indirect(DW_AT name)
+{
+        if (form != DW_FORM::indirect)
+                return;
+
+        cursor c(cu->subsec, offset);
+        DW_FORM form;
+        do {
+                form = (DW_FORM)c.uleb128();
+        } while (form == DW_FORM::indirect);
+        typ = attribute_spec(name, form).type;
+        offset = c.section_offset();
+}
+
 DWARFPP_END_NAMESPACE

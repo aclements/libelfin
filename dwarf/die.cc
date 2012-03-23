@@ -56,19 +56,8 @@ die::operator[](DW_AT attr) const
         if (abbrev) {
                 int i = 0;
                 for (auto &a : abbrev->attributes) {
-                        if (a.name == attr) {
-                                if (a.form == DW_FORM::indirect) {
-                                        // Resolve indirect form
-                                        cursor c(cu->subsec, attrs[i]);
-                                        DW_FORM form;
-                                        do {
-                                                form = (DW_FORM)c.uleb128();
-                                        } while (form == DW_FORM::indirect);
-                                        attribute_spec a2(a.name, form);
-                                        return value(cu, form, a2.type, attrs[i]);
-                                }
-                                return value(cu, a.form, a.type, attrs[i]);
-                        }
+                        if (a.name == attr)
+                                return value(cu, a.name, a.form, a.type, attrs[i]);
                         i++;
                 }
         }

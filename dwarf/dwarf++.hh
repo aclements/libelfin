@@ -319,6 +319,11 @@ public:
                 return typ;
         }
 
+        /**
+         * Return this value's attribute encoding.  This automatically
+         * resolves indirect encodings, so this will never return
+         * DW_FORM::indirect.
+         */
         DW_FORM get_form() const
         {
                 return form;
@@ -345,13 +350,18 @@ private:
         friend class die;
 
         value(const std::shared_ptr<compilation_unit::impl> cu,
-              DW_FORM form, type typ, sec_offset offset)
-                : cu(cu), form(form), typ(typ), offset(offset) { }
+              DW_AT name, DW_FORM form, type typ, sec_offset offset)
+                : cu(cu), form(form), typ(typ), offset(offset) {
+                if (form == DW_FORM::indirect)
+                        resolve_indirect(name);
+        }
 
-        const std::shared_ptr<compilation_unit::impl> cu;
-        const DW_FORM form;
-        const type typ;
-        const sec_offset offset;
+        void resolve_indirect(DW_AT name);
+
+        std::shared_ptr<compilation_unit::impl> cu;
+        DW_FORM form;
+        type typ;
+        sec_offset offset;
 };
 
 std::string
