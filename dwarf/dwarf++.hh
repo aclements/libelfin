@@ -188,6 +188,11 @@ public:
         iterator begin() const;
         iterator end() const;
 
+        /**
+         * Return a vector of the attributes of this DIE.
+         */
+        const std::vector<std::pair<DW_AT, value> > attributes() const;
+
 private:
         friend class compilation_unit;
         friend class value;

@@ -108,4 +108,20 @@ die::iterator::operator++()
         return *this;
 }
 
+const vector<pair<DW_AT, value> >
+die::attributes() const
+{
+        vector<pair<DW_AT, value> > res;
+
+        if (!abbrev)
+                return res;
+
+        int i = 0;
+        for (auto &a : abbrev->attributes) {
+                res.push_back(make_pair(a.name, value(cu, a.name, a.form, a.type, attrs[i])));
+                i++;
+        }
+        return res;
+}
+
 DWARFPP_END_NAMESPACE
