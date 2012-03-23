@@ -58,7 +58,7 @@ compilation_unit::get_section_offset() const
         return m->info.offset;
 }
 
-die
+const die
 compilation_unit::root() const
 {
         m->force_abbrevs();

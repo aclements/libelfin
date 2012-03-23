@@ -153,7 +153,7 @@ public:
          * Return the root DIE of this compilation unit.  This should
          * be a DW_TAG::compilation_unit or DW_TAG::partial_unit.
          */
-        die root() const;
+        const die root() const;
 
         struct impl;
         compilation_unit(std::shared_ptr<impl> m);
