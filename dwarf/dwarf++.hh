@@ -305,6 +305,10 @@ public:
                 string
         };
 
+        value(const value &o) = default;
+        value(value &&o) = default;
+        value &operator=(const value &o) = default;
+
         /**
          * Return this value's byte offset within its compilation
          * unit.
