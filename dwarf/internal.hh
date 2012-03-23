@@ -274,8 +274,20 @@ struct dwarf::impl
         static std::shared_ptr<impl> create(const std::map<section_type, std::shared_ptr<section> > &sections);
 
         impl(std::shared_ptr<section> sec_info,
-             std::shared_ptr<section> sec_abbrev)
-                : sec_info(sec_info), sec_abbrev(sec_abbrev) { }
+             std::shared_ptr<section> sec_abbrev,
+             std::shared_ptr<section> sec_str)
+                : sec_info(sec_info), sec_abbrev(sec_abbrev),
+                  sec_str(sec_str) { }
+
+        const std::shared_ptr<section> get_sec_str()
+        {
+                if (!sec_str)
+                        throw format_error(".debug_str section missing");
+                return sec_str;
+        }
+
+private:
+        const std::shared_ptr<section> sec_str;
 };
 
 /**

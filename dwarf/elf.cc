@@ -17,6 +17,7 @@ elf::section_name_to_type(const char *name, section_type *out)
                 {".debug_info",     section_type::info},
                 {".debug_abbrev",   section_type::abbrev},
                 {".debug_pubtypes", section_type::pubtypes},
+                {".debug_str",      section_type::str},
         };
 
         for (auto &sec : sections) {

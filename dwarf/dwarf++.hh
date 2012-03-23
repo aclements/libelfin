@@ -49,6 +49,7 @@ enum class section_type
         info,
         abbrev,
         pubtypes,
+        str,
 };
 
 std::string

@@ -26,9 +26,13 @@ dwarf::impl::create(const std::map<section_type, std::shared_ptr<section> > &sec
                 throw format_error("required .debug_info section missing");
         if (!sections.count(section_type::abbrev))
                 throw format_error("required .debug_abbrev section missing");
+        shared_ptr<section> sec_str;
+        if (sections.count(section_type::str))
+                sec_str = sections.at(section_type::str);
 
         auto m = make_shared<impl>(sections.at(section_type::info),
-                                   sections.at(section_type::abbrev));
+                                   sections.at(section_type::abbrev),
+                                   sec_str);
 
         // Get compilation units.  Everything derives from these, so
         // there's no point in doing it lazily.
