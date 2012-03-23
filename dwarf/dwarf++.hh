@@ -131,7 +131,7 @@ public:
          * Return the byte offset of this compilation unit in the
          * .debug_info section.
          */
-        sec_offset get_offset() const;
+        sec_offset get_section_offset() const;
 
         /**
          * Return the root DIE of this compilation unit.  This should
@@ -162,10 +162,15 @@ public:
         /**
          * Return this DIE's byte offset within its compilation unit.
          */
-        sec_offset get_offset() const
+        sec_offset get_unit_offset() const
         {
                 return offset;
         }
+
+        /**
+         * Return this DIE's byte offset within its section.
+         */
+        sec_offset get_section_offset() const;
 
         /**
          * Return true if this DIE has the requested attribute.
@@ -318,10 +323,15 @@ public:
          * Return this value's byte offset within its compilation
          * unit.
          */
-        sec_offset get_offset() const
+        sec_offset get_unit_offset() const
         {
                 return offset;
         }
+
+        /**
+         * Return this value's byte offset within its section.
+         */
+        sec_offset get_section_offset() const;
 
         type get_type() const
         {

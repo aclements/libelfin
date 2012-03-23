@@ -49,7 +49,7 @@ compilation_unit::compilation_unit(shared_ptr<impl> m)
 }
 
 sec_offset
-compilation_unit::get_offset() const
+compilation_unit::get_section_offset() const
 {
         return m->info.offset;
 }

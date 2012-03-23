@@ -4,6 +4,12 @@ using namespace std;
 
 DWARFPP_BEGIN_NAMESPACE
 
+sec_offset
+value::get_section_offset() const
+{
+        return cu->info.offset + offset;
+}
+
 die
 value::as_reference() const
 {
