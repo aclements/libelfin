@@ -69,8 +69,10 @@ def make_to_string(typ, arg):
             str = str.rstrip("_")
         print "        case %s::%s: return \"%s\";" % (typ, key, str)
     print "        }"
-    # XXX Use hex
-    print "        return std::string(\"(%s)\") + std::to_string((int)%s);" % (typ, arg)
+    if options.hex:
+        print "        return \"(%s)0x\" + to_hex((int)%s);" % (typ, arg)
+    else:
+        print "        return \"(%s)\" + std::to_string((int)%s);" % (typ, arg)
     print "}"
     print
 
@@ -108,6 +110,8 @@ parser.add_option("-u", "--strip-underscore", dest="strip_underscore",
 parser.add_option("-s", "--separator", dest="separator",
                   help="use SEP between type and field", metavar="SEP",
                   default="::")
+parser.add_option("--hex", dest="hex", action="store_true",
+                  help="return unknown values in hex", default=False)
 (options, args) = parser.parse_args()
 if args:
     parser.error("expected 0 arguments")
