@@ -12,7 +12,7 @@ value::get_section_offset() const
         return cu->info.offset + offset;
 }
 
-uint64_t
+taddr
 value::as_address() const
 {
         if (form != DW_FORM::addr)

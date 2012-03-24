@@ -373,7 +373,7 @@ public:
                 return form;
         }
 
-        uint64_t as_address() const;
+        taddr as_address() const;
 
         /**
          * Return this value as a block.  The returned pointer points

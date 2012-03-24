@@ -103,7 +103,7 @@ cursor::string(size_t *size_out)
 void
 cursor::skip_form(DW_FORM form)
 {
-        uint64_t tmp;
+        sec_offset tmp;
 
         // Section 7.5.4
         switch (form) {

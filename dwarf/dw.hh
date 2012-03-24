@@ -20,6 +20,10 @@ typedef std::uint32_t uword;
 typedef std::uint64_t sec_offset;
 typedef std::uint64_t sec_length;
 
+// A target machine address.  Targets may use smaller addresses; this
+// represents the largest supported address type.
+typedef std::uint64_t taddr;
+
 // DIE tags (Section 7, figure 18).  typedef, friend, and namespace
 // have a trailing underscore because they are reserved words.
 enum class DW_TAG

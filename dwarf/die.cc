@@ -17,13 +17,13 @@ die::read(sec_offset off)
 
         offset = off;
 
-        uint64_t abbrev_code = cur.uleb128();
-        if (abbrev_code == 0) {
+        abbrev_code acode = cur.uleb128();
+        if (acode == 0) {
                 abbrev = nullptr;
                 next = cur.section_offset();
                 return;
         }
-        abbrev = &cu->abbrevs.at(abbrev_code);
+        abbrev = &cu->abbrevs.at(acode);
 
         tag = abbrev->tag;
 

@@ -93,9 +93,9 @@ struct cursor
         const char *string(size_t *size_out);
 
         void
-        ensure(uint64_t bytes)
+        ensure(sec_offset bytes)
         {
-                if ((uint64_t)(sec->end - pos) < bytes)
+                if ((sec_offset)(sec->end - pos) < bytes)
                         underflow();
         }
 
@@ -128,13 +128,13 @@ struct cursor
         void skip_initial_length();
         void skip_form(DW_FORM form);
 
-        cursor &operator+=(uint64_t offset)
+        cursor &operator+=(sec_offset offset)
         {
                 pos += offset;
                 return *this;
         }
 
-        cursor operator+(uint64_t offset) const
+        cursor operator+(sec_offset offset) const
         {
                 return cursor(sec, pos + offset);
         }
@@ -180,12 +180,14 @@ struct attribute_spec
         attribute_spec(DW_AT name, DW_FORM form);
 };
 
+typedef std::uint64_t abbrev_code;
+
 /**
  * An entry in .debug_abbrev.
  */
 struct abbrev_entry
 {
-        std::uint64_t code;
+        abbrev_code code;
         DW_TAG tag;
         bool children;
         std::vector<attribute_spec> attributes;
@@ -307,7 +309,7 @@ struct compilation_unit::impl
         info_unit info;
 
         // Map from abbrev code to abbrev
-        std::unordered_map<uint64_t, abbrev_entry> abbrevs;
+        std::unordered_map<abbrev_code, abbrev_entry> abbrevs;
 
         impl(std::shared_ptr<dwarf::impl> file, info_unit info)
                 : file(file), subsec(info.entries.sec), info(info) { }
