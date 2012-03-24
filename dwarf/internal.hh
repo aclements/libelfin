@@ -125,6 +125,22 @@ struct cursor
                 return 0;
         }
 
+        taddr address()
+        {
+                switch (sec->addr_size) {
+                case 1:
+                        return fixed<uint8_t>();
+                case 2:
+                        return fixed<uint16_t>();
+                case 4:
+                        return fixed<uint32_t>();
+                case 8:
+                        return fixed<uint64_t>();
+                default:
+                        throw std::runtime_error("address size " + std::to_string(sec->addr_size) + " not supported");
+                }
+        }
+
         void skip_initial_length();
         void skip_form(DW_FORM form);
 

@@ -19,18 +19,7 @@ value::as_address() const
                 throw value_type_mismatch("cannot read " + to_string(typ) + " as address");
 
         cursor cur(cu->subsec, offset);
-        switch (cu->subsec->addr_size) {
-        case 1:
-                return cur.fixed<uint8_t>();
-        case 2:
-                return cur.fixed<uint16_t>();
-        case 4:
-                return cur.fixed<uint32_t>();
-        case 8:
-                return cur.fixed<uint64_t>();
-        default:
-                throw runtime_error("address size " + ::to_string(cu->subsec->addr_size) + " not supported");
-        }
+        return cur.address();
 }
 
 const void *
