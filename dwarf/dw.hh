@@ -175,6 +175,7 @@ enum class DW_AT
         virtuality           = 0x4c, // constant
         vtable_elem_location = 0x4d, // exprloc, loclistptr
 
+        // DWARF 3
         allocated            = 0x4e, // constant, exprloc, reference
         associated           = 0x4f, // constant, exprloc, reference
         data_location        = 0x50, // exprloc
@@ -203,12 +204,14 @@ enum class DW_AT
         elemental            = 0x66, // flag
         pure                 = 0x67, // flag
         recursive            = 0x68, // flag
-        signature            = 0x69, // reference (new in DWARF 4)
-        main_subprogram      = 0x6a, // flag (new in DWARF 4)
-        data_bit_offset      = 0x6b, // constant (new in DWARF 4)
-        const_expr           = 0x6c, // flag (new in DWARF 4)
-        enum_class           = 0x6d, // flag (new in DWARF 4)
-        linkage_name         = 0x6e, // string (new in DWARF 4)
+
+        // DWARF 4
+        signature            = 0x69, // reference
+        main_subprogram      = 0x6a, // flag
+        data_bit_offset      = 0x6b, // constant
+        const_expr           = 0x6c, // flag
+        enum_class           = 0x6d, // flag
+        linkage_name         = 0x6e, // string
 
         lo_user              = 0x2000,
         hi_user              = 0x3fff,
@@ -242,6 +245,8 @@ enum class DW_FORM
 
         ref_udata    = 0x15,    // reference
         indirect     = 0x16,    // (Section 7.5.3)
+
+        // DWARF 4
         sec_offset   = 0x17,    // lineptr, loclistptr, macptr, rangelistptr
         exprloc      = 0x18,    // exprloc
         flag_present = 0x19,    // flag
