@@ -366,7 +366,9 @@ public:
         /**
          * Return this value's attribute encoding.  This automatically
          * resolves indirect encodings, so this will never return
-         * DW_FORM::indirect.
+         * DW_FORM::indirect.  Note that the mapping from forms to
+         * types is non-trivial and often depends on the attribute
+         * (especially prior to DWARF 4).
          */
         DW_FORM get_form() const
         {
