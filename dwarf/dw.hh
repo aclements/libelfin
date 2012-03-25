@@ -256,6 +256,94 @@ enum class DW_FORM
 std::string
 to_string(DW_FORM v);
 
+// DWARF operation encodings (Section 7.7.1 and figure 24)
+enum class DW_OP : ubyte
+{
+        addr                = 0x03, // [constant address (size target specific)]
+        deref               = 0x06,
+
+        const1u             = 0x08, // [1-byte constant]
+        const1s             = 0x09, // [1-byte constant]
+        const2u             = 0x0a, // [2-byte constant]
+        const2s             = 0x0b, // [2-byte constant]
+        const4u             = 0x0c, // [4-byte constant]
+        const4s             = 0x0d, // [4-byte constant]
+        const8u             = 0x0e, // [8-byte constant]
+        const8s             = 0x0f, // [8-byte constant]
+        constu              = 0x10, // [ULEB128 constant]
+        consts              = 0x11, // [SLEB128 constant]
+        dup                 = 0x12,
+        drop                = 0x13,
+        over                = 0x14,
+        pick                = 0x15, // [1-byte stack index]
+        swap                = 0x16,
+        rot                 = 0x17,
+        xderef              = 0x18,
+        abs                 = 0x19,
+        and_                = 0x1a,
+        div                 = 0x1b,
+
+        minus               = 0x1c,
+        mod                 = 0x1d,
+        mul                 = 0x1e,
+        neg                 = 0x1f,
+        not_                = 0x20,
+        or_                 = 0x21,
+        plus                = 0x22,
+        plus_uconst         = 0x23, // [ULEB128 addend]
+        shl                 = 0x24,
+        shr                 = 0x25,
+        shra                = 0x26,
+        xor_                = 0x27,
+        skip                = 0x2f, // [signed 2-byte constant]
+        bra                 = 0x28, // [signed 2-byte constant]
+        eq                  = 0x29,
+        ge                  = 0x2a,
+        gt                  = 0x2b,
+        le                  = 0x2c,
+        lt                  = 0x2d,
+        ne                  = 0x2e,
+
+        // Literals 0..31 = (lit0 + literal)
+        lit0                = 0x30,
+        lit31               = 0x4f,
+
+        // Registers 0..31 = (reg0 + regnum)
+        reg0                = 0x50,
+        reg31               = 0x6f,
+
+        // Base register 0..31 = (breg0 + regnum)
+        breg0               = 0x70, // [SLEB128 offset]
+        breg31              = 0x8f, // [SLEB128 offset]
+
+        regx                = 0x90, // [ULEB128 register]
+        fbreg               = 0x91, // [SLEB128 offset]
+        bregx               = 0x92, // [ULEB128 register, SLEB128 offset]
+        piece               = 0x93, // [ULEB128 size of piece addressed]
+        deref_size          = 0x94, // [1-byte size of data retrieved]
+        xderef_size         = 0x95, // [1-byte size of data retrieved]
+        nop                 = 0x96,
+
+        // DWARF 3
+        push_object_address = 0x97,
+        call2               = 0x98, // [2-byte offset of DIE]
+        call4               = 0x99, // [4-byte offset of DIE]
+        call_ref            = 0x9a, // [4- or 8-byte offset of DIE]
+        form_tls_address    = 0x9b,
+        call_frame_cfa      = 0x9c,
+        bit_piece           = 0x9d, // [ULEB128 size, ULEB128 offset]
+
+        // DWARF 4
+        implicit_value      = 0x9e, // [ULEB128 size, block of that size]
+        stack_value         = 0x9f,
+
+        lo_user             = 0xe0,
+        hi_user             = 0xff,
+};
+
+std::string
+to_string(DW_OP v);
+
 DWARFPP_END_NAMESPACE
 
 #endif

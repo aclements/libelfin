@@ -30,6 +30,7 @@ value::as_block(size_t *size_out) const
         // XXX Blocks can contain all sorts of things, including
         // references, which couldn't be resolved by callers in the
         // current minimal API.
+        // XXX Does automatic coercion
         cursor cur(cu->subsec, offset);
         switch (form) {
         case DW_FORM::block1:
@@ -42,6 +43,7 @@ value::as_block(size_t *size_out) const
                 *size_out = cur.fixed<uint32_t>();
                 break;
         case DW_FORM::block:
+        case DW_FORM::exprloc:
                 *size_out = cur.uleb128();
                 break;
         default:
@@ -54,6 +56,7 @@ value::as_block(size_t *size_out) const
 uint64_t
 value::as_uconstant() const
 {
+        // XXX Does automatic coercion
         cursor cur(cu->subsec, offset);
         switch (form) {
         case DW_FORM::data1:
@@ -74,6 +77,7 @@ value::as_uconstant() const
 int64_t
 value::as_sconstant() const
 {
+        // XXX Does automatic coercion
         cursor cur(cu->subsec, offset);
         switch (form) {
         case DW_FORM::data1:
@@ -89,6 +93,33 @@ value::as_sconstant() const
         default:
                 throw value_type_mismatch("cannot read " + to_string(typ) + " as sconstant");
         }
+}
+
+expr
+value::as_exprloc() const
+{
+        // XXX Does automatic coercion
+        cursor cur(cu->subsec, offset);
+        size_t size;
+        // Prior to DWARF 4, exprlocs were encoded as blocks.
+        switch (form) {
+        case DW_FORM::exprloc:
+        case DW_FORM::block:
+                size = cur.uleb128();
+                break;
+        case DW_FORM::block1:
+                size = cur.fixed<uint8_t>();
+                break;
+        case DW_FORM::block2:
+                size = cur.fixed<uint16_t>();
+                break;
+        case DW_FORM::block4:
+                size = cur.fixed<uint32_t>();
+                break;
+        default:
+                throw value_type_mismatch("cannot read " + to_string(typ) + " as exprloc");
+        }
+        return expr(cu, cur.section_offset(), size);
 }
 
 bool
@@ -218,6 +249,9 @@ to_string(const value &v)
                 return ::to_string(v.as_uconstant());
         case value::type::sconstant:
                 return ::to_string(v.as_sconstant());
+        case value::type::exprloc:
+                // XXX
+                return "<exprloc>";
         case value::type::flag:
                 return v.as_flag() ? "true" : "false";
         case value::type::reference:

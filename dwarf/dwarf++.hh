@@ -8,6 +8,7 @@
 
 #include "dw.hh"
 
+#include <initializer_list>
 #include <map>
 #include <memory>
 #include <stdexcept>
@@ -22,6 +23,9 @@ class dwarf;
 class compilation_unit;
 class die;
 class value;
+class expr;
+class expr_context;
+class expr_result;
 
 // Internal type forward-declarations
 struct section;
@@ -390,7 +394,7 @@ public:
 
         int64_t as_sconstant() const;
 
-        // XXX expression
+        expr as_exprloc() const;
 
         bool as_flag() const;
 
@@ -442,6 +446,171 @@ to_string(value::type v);
 
 std::string
 to_string(const value &v);
+
+/**
+ * An exception during expression evaluation.
+ */
+class expr_error : public std::runtime_error
+{
+public:
+        explicit expr_error(const std::string &what_arg)
+                : std::runtime_error(what_arg) { }
+        explicit expr_error(const char *what_arg)
+                : std::runtime_error(what_arg) { }
+};
+
+/**
+ * A DWARF expression or location description.
+ */
+class expr
+{
+public:
+        /**
+         * Short-hand for evaluate(ctx, {}).
+         */
+        expr_result evaluate(expr_context *ctx);
+
+        /**
+         * Short-hand for evaluate(ctx, {argument}).
+         */
+        expr_result evaluate(expr_context *ctx, taddr argument);
+
+        /**
+         * Return the result of evaluating this expression using the
+         * specified expression context.  The expression stack will be
+         * initialized with the given arguments such that the first
+         * arguments is at the top of the stack and the last argument
+         * at the bottom of the stack.
+         *
+         * Throws expr_error if there is an error evaluating the
+         * expression (such as an unknown operation, stack underflow,
+         * bounds error, etc.)
+         */
+        expr_result evaluate(expr_context *ctx, std::initializer_list<taddr> arguments);
+
+private:
+        // XXX This will need more information for some operations
+        expr(const std::shared_ptr<compilation_unit::impl> cu,
+             sec_offset offset, sec_length len)
+                : cu(cu), offset(offset), len(len) { }
+
+        friend class value;
+
+        std::shared_ptr<compilation_unit::impl> cu;
+        sec_offset offset;
+        sec_length len;
+};
+
+/**
+ * An interface that provides contextual information for expression
+ * evaluation.  Callers of expr::evaluate are expected to subclass
+ * this in order to provide this information to the expression
+ * evaluation engine.  The default implementation throws expr_error
+ * for all methods.
+ */
+class expr_context
+{
+public:
+        virtual ~expr_context() { }
+
+        /**
+         * Return the value stored in register reg.  This is used to
+         * implement DW_OP_breg* operations.
+         */
+        virtual taddr reg(unsigned reg)
+        {
+                throw expr_error("DW_OP_breg* operations not supported");
+        }
+
+        /**
+         * Implement DW_OP_deref_size.
+         */
+        virtual taddr deref_size(taddr address, unsigned size)
+        {
+                throw expr_error("DW_OP_deref_size operations not supported");
+        }
+
+        /**
+         * Implement DW_OP_xderef_size.
+         */
+        virtual taddr xderef_size(taddr address, taddr asid, unsigned size)
+        {
+                throw expr_error("DW_OP_xderef_size operations not supported");
+        }
+
+        /**
+         * Implement DW_OP_form_tls_address.
+         */
+        virtual taddr form_tls_address(taddr address)
+        {
+                throw expr_error("DW_OP_form_tls_address operations not supported");
+        }
+};
+
+/**
+ * The result of evaluating a DWARF expression or location
+ * description.
+ */
+class expr_result
+{
+public:
+        enum class type {
+                /**
+                 * value specifies the address in memory of an object.
+                 * This is also the result type used for general
+                 * expressions that do not refer to object locations.
+                 */
+                address,
+                /**
+                 * value specifies a register storing an object.
+                 */
+                reg,
+                /**
+                 * The object does not have a location.  value is the
+                 * value of the object.
+                 */
+                literal,
+                /**
+                 * The object does not have a location.  Its value is
+                 * pointed to by the 'implicit' field.
+                 */
+                implicit,
+                /**
+                 * The object is present in the source, but not in the
+                 * object code, and hence does not have a location or
+                 * a value.
+                 */
+                empty,
+        };
+
+        /**
+         * For location descriptions, the type of location this result
+         * describes.
+         */
+        type location_type;
+
+        /**
+         * For general-purpose expressions, the result of expression.
+         * For address location descriptions, the address in memory of
+         * the object.  For register location descriptions, the
+         * register storing the object.  For literal location
+         * descriptions, the value of the object.
+         */
+        taddr value;
+
+        /**
+         * For implicit location descriptions, a pointer to a block
+         * representing the value in the memory representation of the
+         * target machine.
+         */
+        const char *implicit;
+        size_t implicit_len;
+
+        // XXX Composite locations
+};
+
+std::string
+to_string(expr_result::type v);
 
 DWARFPP_END_NAMESPACE
 
