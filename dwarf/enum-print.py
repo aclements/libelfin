@@ -10,7 +10,10 @@ def read_toks():
         elif data.startswith("/*"):
             data = data.split("*/",1)[1]
         elif data.startswith("\"") or data.startswith("'"):
-            raise NotImplementedError("strings")
+            c = data[0]
+            m = re.match(r'%s([^\\%s]|\\.)*%s' % (c,c,c), data)
+            yield m.group(0)
+            data = data[m.end():]
         else:
             m = re.match(r"[_a-zA-Z0-9]+|[{}();]|[^_a-zA-Z0-9 \n\t\f]+", data)
             yield m.group(0)
