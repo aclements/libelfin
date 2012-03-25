@@ -50,12 +50,13 @@ struct section
         section_type type;
         const char *begin, *end;
         const format fmt;
-        int addr_size;
+        unsigned addr_size;
 
         section(section_type type, const void *begin,
-                sec_length length, format fmt = format::unknown)
+                sec_length length, format fmt = format::unknown,
+                unsigned addr_size = 0)
                 : type(type), begin((char*)begin), end((char*)begin + length),
-                  fmt(fmt), addr_size(0) { }
+                  fmt(fmt), addr_size(addr_size) { }
 };
 
 /**
