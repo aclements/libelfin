@@ -130,7 +130,7 @@ public:
         /**
          * Return the list of compilation units in this DWARF file.
          */
-        const std::vector<compilation_unit> &compilation_units();
+        const std::vector<compilation_unit> &compilation_units() const;
 
         struct impl;
         dwarf(std::shared_ptr<impl> m);

@@ -14,7 +14,7 @@ dwarf::~dwarf()
 }
 
 const std::vector<compilation_unit> &
-dwarf::compilation_units()
+dwarf::compilation_units() const
 {
         return m->compilation_units;
 }
