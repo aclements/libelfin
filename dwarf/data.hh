@@ -4,11 +4,6 @@
 #include <cstdint>
 #include <string>
 
-#ifndef DWARFPP_BEGIN_NAMESPACE
-#define DWARFPP_BEGIN_NAMESPACE namespace dwarf {
-#define DWARFPP_END_NAMESPACE   }
-#endif
-
 DWARFPP_BEGIN_NAMESPACE
 
 // Integer representations (Section 7.26)
