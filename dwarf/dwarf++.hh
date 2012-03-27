@@ -6,7 +6,7 @@
 #define DWARFPP_END_NAMESPACE   }
 #endif
 
-#include "dw.hh"
+#include "data.hh"
 
 #include <initializer_list>
 #include <map>

@@ -2,7 +2,6 @@
 #define _DWARFPP_INTERNAL_HH_
 
 #include "dwarf++.hh"
-#include "dw.hh"
 
 #include <stdexcept>
 #include <type_traits>
