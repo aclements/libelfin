@@ -43,9 +43,25 @@ public:
 class file
 {
 public:
+        /**
+         * Construct an ELF file that is backed by data read from the
+         * given loader.
+         */
         explicit file(const std::shared_ptr<loader> &l);
+
+        /**
+         * Construct an ELF file that is initially not valid.  Calling
+         * methods other than operator= and valid on this results in
+         * undefined behavior.
+         */
+        file() = default;
         file(const file &o) = default;
         file(file &&o) = default;
+
+        bool valid() const
+        {
+                return !!m;
+        }
 
         /**
          * Return the ELF file header in canonical form (ELF64 in
@@ -127,8 +143,9 @@ class section
 {
 public:
         /**
-         * Construct an invalid section.  Calling methods other than
-         * operator= and valid on this results in undefined behavior.
+         * Construct a section that is initially not valid.  Calling
+         * methods other than operator= and valid on this results in
+         * undefined behavior.
          */
         section() { }
 
@@ -140,9 +157,9 @@ public:
          * Return true if this section is valid and corresponds to a
          * section in the ELF file.
          */
-        bool valid()
+        bool valid() const
         {
-                return (bool)m;
+                return !!m;
         }
 
         /**
@@ -192,7 +209,18 @@ private:
 class strtab
 {
 public:
+        /**
+         * Construct a strtab that is initially not valid.  Calling
+         * methods other than operator= and valid on this results in
+         * undefined behavior.
+         */
+        strtab() = default;
         strtab(file f, const void *data, size_t size);
+
+        bool valid() const
+        {
+                return !!m;
+        }
 
         /**
          * Return the string at the given offset in this string table.

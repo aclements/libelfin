@@ -119,10 +119,22 @@ namespace elf
 class dwarf
 {
 public:
+        /**
+         * Construct a DWARF file that is initially not valid.
+         */
+        dwarf() = default;
         dwarf(const dwarf&) = default;
         dwarf(dwarf&&) = default;
         ~dwarf();
-        dwarf &operator=(const dwarf &o) = default;
+
+        /**
+         * Return true if this object represents a DWARF file.
+         * Default constructed dwarf objects are not valid.
+         */
+        bool valid() const
+        {
+                return !!m;
+        }
 
         // XXX This allows the compilation units to be modified and
         // ties us to a vector.  Probably should return an opaque
