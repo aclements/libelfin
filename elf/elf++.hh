@@ -10,7 +10,7 @@
 
 ELFPP_BEGIN_NAMESPACE
 
-class file;
+class elf;
 class loader;
 class section;
 class strtab;
@@ -40,23 +40,23 @@ public:
  * Keeping any object that can return such a pointer live is
  * sufficieint to keep the loader live.
  */
-class file
+class elf
 {
 public:
         /**
          * Construct an ELF file that is backed by data read from the
          * given loader.
          */
-        explicit file(const std::shared_ptr<loader> &l);
+        explicit elf(const std::shared_ptr<loader> &l);
 
         /**
          * Construct an ELF file that is initially not valid.  Calling
          * methods other than operator= and valid on this results in
          * undefined behavior.
          */
-        file() = default;
-        file(const file &o) = default;
-        file(file &&o) = default;
+        elf() = default;
+        elf(const elf &o) = default;
+        elf(elf &&o) = default;
 
         bool valid() const
         {
@@ -149,7 +149,7 @@ public:
          */
         section() { }
 
-        section(const file &f, const void *hdr);
+        section(const elf &f, const void *hdr);
         section(const section &o) = default;
         section(section &&o) = default;
 
@@ -215,7 +215,7 @@ public:
          * undefined behavior.
          */
         strtab() = default;
-        strtab(file f, const void *data, size_t size);
+        strtab(elf f, const void *data, size_t size);
 
         bool valid() const
         {

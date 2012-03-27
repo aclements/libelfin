@@ -33,10 +33,10 @@ void canon_hdr(Hdr<Elf64, byte_order::native> *out, const void *data,
 }
 
 //////////////////////////////////////////////////////////////////
-// class file
+// class elf
 //
 
-struct file::impl
+struct elf::impl
 {
         impl(const shared_ptr<loader> &l)
                 : l(l) { }
@@ -49,7 +49,7 @@ struct file::impl
         section invalid_section;
 };
 
-file::file(const std::shared_ptr<loader> &l)
+elf::elf(const std::shared_ptr<loader> &l)
         : m(make_shared<impl>(l))
 {
         // Read the first six bytes to check the magic number, ELF
@@ -91,30 +91,31 @@ file::file(const std::shared_ptr<loader> &l)
                                        m->hdr.shentsize * m->hdr.shnum);
         for (unsigned i = 0; i < m->hdr.shnum; i++) {
                 const void *sec = ((const char*)sec_data) + i * m->hdr.shentsize;
+                // XXX Circular reference
                 m->sections.push_back(section(*this, sec));
         }
 }
 
 const Ehdr<> &
-file::get_hdr() const
+elf::get_hdr() const
 {
         return m->hdr;
 }
 
 shared_ptr<loader>
-file::get_loader() const
+elf::get_loader() const
 {
         return m->l;
 }
 
 const std::vector<section> &
-file::sections() const
+elf::sections() const
 {
         return m->sections;
 }
 
 const section &
-file::get_section(const std::string &name) const
+elf::get_section(const std::string &name) const
 {
         for (auto &sec : sections())
                 if (name == sec.get_name(nullptr))
@@ -123,7 +124,7 @@ file::get_section(const std::string &name) const
 }
 
 const section &
-file::get_section(unsigned index) const
+elf::get_section(unsigned index) const
 {
         if (index >= sections().size())
                 return m->invalid_section;
@@ -136,17 +137,17 @@ file::get_section(unsigned index) const
 
 struct section::impl
 {
-        impl(const file &f)
+        impl(const elf &f)
                 : f(f) { }
 
-        const file f;
+        const elf f;
         Shdr<> hdr;
         const char *name;
         size_t name_len;
         const void *data;
 };
 
-section::section(const file &f, const void *hdr)
+section::section(const elf &f, const void *hdr)
         : m(make_shared<impl>(f))
 {
         canon_hdr(&m->hdr, hdr, f.get_hdr().ei_class, f.get_hdr().ei_data);
@@ -206,14 +207,14 @@ section::as_strtab() const
 
 struct strtab::impl
 {
-        impl(const file &f, const char *data, const char *end)
+        impl(const elf &f, const char *data, const char *end)
                 : f(f), data(data), end(end) { }
 
-        const file f;
+        const elf f;
         const char *data, *end;
 };
 
-strtab::strtab(file f, const void *data, size_t size)
+strtab::strtab(elf f, const void *data, size_t size)
         : m(make_shared<impl>(f, (const char*)data, (const char *)data + size))
 {
 }

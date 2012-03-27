@@ -12,7 +12,7 @@ using namespace std;
 
 ELFPP_BEGIN_NAMESPACE
 
-class mmap_loader : public elf::loader
+class mmap_loader : public loader
 {
         void *base;
         size_t lim;
