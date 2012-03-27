@@ -1,7 +1,8 @@
 CXXFLAGS+=-g -O2 -Werror
 override CXXFLAGS+=-std=c++0x -Wall
 
-SRCS := loader.cc elf.cc dwarf.cc cursor.cc die.cc value.cc abbrev.cc expr.cc to_string.cc
+SRCS := loader.cc elf.cc dwarf.cc cursor.cc die.cc value.cc abbrev.cc \
+	expr.cc die_str_map.cc to_string.cc
 HDRS := dwarf++.hh internal.hh dw.hh
 CLEAN :=
 

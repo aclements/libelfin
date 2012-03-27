@@ -180,6 +180,16 @@ public:
         die(die &&o) = default;
 
         /**
+         * Return true if this object represents a DIE in a DWARF
+         * file.  Default constructed objects are not valid and some
+         * methods return invalid DIEs to indicate failures.
+         */
+        bool valid() const
+        {
+                return abbrev != nullptr;
+        }
+
+        /**
          * Return this DIE's byte offset within its compilation unit.
          */
         sec_offset get_unit_offset() const
@@ -611,6 +621,43 @@ public:
 
 std::string
 to_string(expr_result::type v);
+
+//////////////////////////////////////////////////////////////////
+// Utilities
+//
+
+/**
+ * An index of sibling DIEs by some string attribute.  This index is
+ * lazily constructed and space-efficient.
+ */
+class die_str_map
+{
+public:
+        /**
+         * Construct the index of the attr attribute of all immediate
+         * children of parent whose tags are in accept.
+         */
+        die_str_map(const die &parent, DW_AT attr,
+                    const std::initializer_list<DW_TAG> &accept);
+
+        /**
+         * Return the DIE whose attribute matches val.  If no such DIE
+         * exists, return an invalid die object.
+         */
+        const die &operator[](const char *val) const;
+
+        /**
+         * Short-hand for [value.c_str()].
+         */
+        const die &operator[](const std::string &val) const
+        {
+                return (*this)[val.c_str()];
+        }
+
+private:
+        struct impl;
+        const std::shared_ptr<impl> m;
+};
 
 DWARFPP_END_NAMESPACE
 
