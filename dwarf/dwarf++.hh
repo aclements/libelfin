@@ -667,6 +667,36 @@ namespace elf
          * Translate a DWARF section type into an ELF section name.
          */
         const char *section_type_to_name(section_type type);
+
+        template<typename Elf>
+        class elf_loader : public loader
+        {
+                Elf f;
+
+        public:
+                elf_loader(const Elf &f) : f(f) { }
+
+                const void *load(section_type section, size_t *size_out)
+                {
+                        auto sec = f.get_section(section_type_to_name(section));
+                        if (!sec.valid())
+                                return nullptr;
+                        *size_out = sec.size();
+                        return sec.data();
+                }
+        };
+
+        /**
+         * Create a DWARF section loader backed by the given ELF
+         * file.  This is templatized to eliminate a static dependency
+         * between the libelf++ and libdwarf++, though it can only
+         * reasonably be used with elf::elf from libelf++.
+         */
+        template<typename Elf>
+        std::shared_ptr<elf_loader<Elf> > create_loader(const Elf &f)
+        {
+                return std::make_shared<elf_loader<Elf> >(f);
+        }
 };
 
 DWARFPP_END_NAMESPACE
