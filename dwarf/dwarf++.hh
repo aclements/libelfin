@@ -18,8 +18,8 @@
 DWARFPP_BEGIN_NAMESPACE
 
 // Forward declarations
-class loader;
 class dwarf;
+class loader;
 class compilation_unit;
 class die;
 class value;
@@ -67,41 +67,6 @@ enum class section_type
 std::string
 to_string(section_type v);
 
-/**
- * A loader for DWARF data.
- *
- * XXX Alternatively, this could be callback-based and lazily load
- * sections.  Users would construct dwarf directly with a lazy loader
- * and the ELF library could easily provide a lazy loader.  OTOH,
- * maybe I'd just be recreating demand paging.  Though, a lazy loader
- * would be easier to implement with open/read.  It would also address
- * lifetime issues.
- */
-class loader
-{
-public:
-        loader();
-        ~loader();
-
-        /**
-         * Register a section of DWARF data.  The caller is
-         * responsible for keeping this memory live for as long any
-         * objects derived from this loader are live.
-         */
-        void register_section(section_type type, const void *begin,
-                              unsigned long long length);
-
-        /**
-         * Load the registered sections.  Throws format_error if a
-         * required section is missing.
-         */
-        dwarf load();
-
-private:
-        struct impl;
-        std::unique_ptr<impl> m;
-};
-
 namespace elf
 {
         /**
@@ -119,6 +84,12 @@ namespace elf
 class dwarf
 {
 public:
+        /**
+         * Construct a DWARF file that is backed by sections read from
+         * the given loader.
+         */
+        explicit dwarf(const std::shared_ptr<loader> &l);
+
         /**
          * Construct a DWARF file that is initially not valid.
          */
@@ -145,10 +116,28 @@ public:
         const std::vector<compilation_unit> &compilation_units() const;
 
         struct impl;
-        dwarf(std::shared_ptr<impl> m);
 
 private:
         std::shared_ptr<impl> m;
+};
+
+/**
+ * An interface for lazily loading DWARF sections.
+ */
+class loader
+{
+public:
+        virtual ~loader() { }
+
+        /**
+         * Load the requested DWARF section into memory and return a
+         * pointer to the beginning of it.  This memory must remain
+         * valid and unchanged until the loader is destroyed.  If the
+         * requested section does not exist, this should return
+         * nullptr.  If the section exists but cannot be loaded for
+         * any reason, this should throw an exception.
+         */
+        virtual const void *load(section_type section, size_t *size_out) = 0;
 };
 
 /**

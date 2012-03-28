@@ -4,9 +4,33 @@ using namespace std;
 
 DWARFPP_BEGIN_NAMESPACE
 
-dwarf::dwarf(std::shared_ptr<impl> m)
-        : m(m)
+dwarf::dwarf(const std::shared_ptr<loader> &l)
+        : m(make_shared<impl>(l))
 {
+        const void *data;
+        size_t size;
+
+        // Get required sections
+        data = l->load(section_type::info, &size);
+        if (!data)
+                throw format_error("required .debug_info section missing");
+        m->sec_info = make_shared<section>(section_type::info, data, size);
+
+        data = l->load(section_type::abbrev, &size);
+        if (!data)
+                throw format_error("required .debug_abbrev section missing");
+        m->sec_abbrev = make_shared<section>(section_type::abbrev, data, size);
+
+        // Get compilation units.  Everything derives from these, so
+        // there's no point in doing it lazily.
+        cursor infocur(m->sec_info);
+        info_unit info;
+        while (!infocur.end()) {
+                info.read(&infocur);
+                // XXX Circular reference
+                m->compilation_units.push_back(
+                        make_shared<compilation_unit::impl>(m, info));
+        }
 }
 
 dwarf::~dwarf()
@@ -17,34 +41,6 @@ const std::vector<compilation_unit> &
 dwarf::compilation_units() const
 {
         return m->compilation_units;
-}
-
-shared_ptr<dwarf::impl>
-dwarf::impl::create(const std::map<section_type, std::shared_ptr<section> > &sections)
-{
-        if (!sections.count(section_type::info))
-                throw format_error("required .debug_info section missing");
-        if (!sections.count(section_type::abbrev))
-                throw format_error("required .debug_abbrev section missing");
-        shared_ptr<section> sec_str;
-        if (sections.count(section_type::str))
-                sec_str = sections.at(section_type::str);
-
-        auto m = make_shared<impl>(sections.at(section_type::info),
-                                   sections.at(section_type::abbrev),
-                                   sec_str);
-
-        // Get compilation units.  Everything derives from these, so
-        // there's no point in doing it lazily.
-        cursor infocur(m->sec_info);
-        info_unit info;
-        while (!infocur.end()) {
-                info.read(&infocur);
-                m->compilation_units.push_back(
-                        make_shared<compilation_unit::impl>(m, info));
-        }
-
-        return m;
 }
 
 compilation_unit::compilation_unit(shared_ptr<impl> m)

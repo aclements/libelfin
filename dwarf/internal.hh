@@ -66,9 +66,9 @@ struct cursor
 {
         // XXX There's probably a lot of overhead to maintaining the
         // shared pointer to the section from this.  Perhaps the rule
-        // should be that a compilation_unit::impl keeps all sections
-        // alive (either directly or by keeping a dwarf::impl alive),
-        // so a cursor just needs a regular section*?
+        // should be that all objects keep the dwarf::impl alive
+        // (directly or indirectly) and that keeps the loader alive,
+        // so a cursor just needs a regular section*.
 
         std::shared_ptr<section> sec;
         const char *pos;
@@ -291,28 +291,30 @@ struct name_entry
  */
 struct dwarf::impl
 {
-        const std::shared_ptr<section> sec_info;
-        const std::shared_ptr<section> sec_abbrev;
+        impl(const std::shared_ptr<loader> &l)
+                : l(l) { }
+
+        std::shared_ptr<loader> l;
+
+        std::shared_ptr<section> sec_info;
+        std::shared_ptr<section> sec_abbrev;
 
         std::vector<compilation_unit> compilation_units;
 
-        static std::shared_ptr<impl> create(const std::map<section_type, std::shared_ptr<section> > &sections);
-
-        impl(std::shared_ptr<section> sec_info,
-             std::shared_ptr<section> sec_abbrev,
-             std::shared_ptr<section> sec_str)
-                : sec_info(sec_info), sec_abbrev(sec_abbrev),
-                  sec_str(sec_str) { }
-
         const std::shared_ptr<section> get_sec_str()
         {
-                if (!sec_str)
-                        throw format_error(".debug_str section missing");
+                if (!sec_str) {
+                        size_t size;
+                        const void *data = l->load(section_type::str, &size);
+                        if (!data)
+                                throw format_error(".debug_str section missing");
+                        sec_str = std::make_shared<section>(section_type::str, data, size);
+                }
                 return sec_str;
         }
 
 private:
-        const std::shared_ptr<section> sec_str;
+        std::shared_ptr<section> sec_str;
 };
 
 /**
