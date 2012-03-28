@@ -67,21 +67,6 @@ enum class section_type
 std::string
 to_string(section_type v);
 
-namespace elf
-{
-        /**
-         * Translate an ELF section name info a DWARF section type.
-         * If the section is a valid DWARF section name, sets *out to
-         * the type and returns true.  If not, returns false.
-         */
-        bool section_name_to_type(const char *name, section_type *out);
-
-        /**
-         * Translate a DWARF section type into an ELF section name.
-         */
-        const char *section_type_to_name(section_type type);
-};
-
 /**
  * A DWARF file.  This class is internally reference counted and can
  * be efficiently copied.
@@ -663,6 +648,25 @@ public:
 private:
         struct impl;
         const std::shared_ptr<impl> m;
+};
+
+//////////////////////////////////////////////////////////////////
+// ELF support
+//
+
+namespace elf
+{
+        /**
+         * Translate an ELF section name info a DWARF section type.
+         * If the section is a valid DWARF section name, sets *out to
+         * the type and returns true.  If not, returns false.
+         */
+        bool section_name_to_type(const char *name, section_type *out);
+
+        /**
+         * Translate a DWARF section type into an ELF section name.
+         */
+        const char *section_type_to_name(section_type type);
 };
 
 DWARFPP_END_NAMESPACE
