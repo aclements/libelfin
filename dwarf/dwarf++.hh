@@ -75,6 +75,11 @@ namespace elf
          * the type and returns true.  If not, returns false.
          */
         bool section_name_to_type(const char *name, section_type *out);
+
+        /**
+         * Translate a DWARF section type into an ELF section name.
+         */
+        const char *section_type_to_name(section_type type);
 };
 
 /**
