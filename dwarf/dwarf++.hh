@@ -197,9 +197,12 @@ public:
          * Return true if this DIE has the requested attribute.
          */
         bool has(DW_AT attr) const;
+
         /**
          * Return the value of attr.  Throws out_of_range if this DIE
-         * does not have the specified attribute.
+         * does not have the specified attribute.  It is generally
+         * better to use the type-safe attribute getters (the global
+         * functions beginning with at_*) when possible.
          */
         const value operator[](DW_AT attr) const;
 
@@ -619,6 +622,76 @@ public:
 
 std::string
 to_string(expr_result::type v);
+
+//////////////////////////////////////////////////////////////////
+// Type-safe attribute getters
+//
+
+// XXX More
+
+die at_abstract_origin(const die &d);
+DW_ACCESS at_accessibility(const die &d);
+uint64_t at_allocated(const die &d, expr_context *ctx);
+bool at_artificial(const die &d);
+uint64_t at_associated(const die &d, expr_context *ctx);
+uint64_t at_bit_offset(const die &d, expr_context *ctx);
+uint64_t at_bit_size(const die &d, expr_context *ctx);
+uint64_t at_bit_stride(const die &d, expr_context *ctx);
+uint64_t at_byte_size(const die &d, expr_context *ctx);
+uint64_t at_byte_stride(const die &d, expr_context *ctx);
+DW_CC at_calling_convention(const die &d);
+die at_common_reference(const die &d);
+std::string at_comp_dir(const die &d);
+value at_const_value(const die &d);
+bool at_const_expr(const die &d);
+die at_containing_type(const die &d);
+uint64_t at_count(const die &d, expr_context *ctx);
+expr_result at_data_member_location(const die &d, expr_context *ctx, taddr base, taddr pc);
+bool at_declaration(const die &d);
+std::string at_description(const die &d);
+die at_discr(const die &d);
+value at_discr_value(const die &d);
+bool at_elemental(const die &d);
+DW_ATE at_encoding(const die &d);
+DW_END at_endianity(const die &d);
+taddr at_entry_pc(const die &d);
+bool at_enum_class(const die &d);
+bool at_explicit(const die &d);
+die at_extension(const die &d);
+bool at_external(const die &d);
+die at_friend(const die &d);
+taddr at_high_pc(const die &d);
+DW_ID at_identifier_case(const die &d);
+die at_import(const die &d);
+DW_INL at_inline(const die &d);
+bool at_is_optional(const die &d);
+DW_LANG at_language(const die &d);
+std::string at_linkage_name(const die &d);
+taddr at_low_pc(const die &d);
+uint64_t at_lower_bound(const die &d, expr_context *ctx);
+bool at_main_subprogram(const die &d);
+bool at_mutable(const die &d);
+std::string at_name(const die &d);
+die at_namelist_item(const die &d);
+die at_object_pointer(const die &d);
+DW_ORD at_ordering(const die &d);
+std::string at_picture_string(const die &d);
+die at_priority(const die &d);
+std::string at_producer(const die &d);
+bool at_prototyped(const die &d);
+bool at_pure(const die &d);
+bool at_recursive(const die &d);
+die at_sibling(const die &d);
+die at_signature(const die &d);
+die at_small(const die &d);
+die at_specification(const die &d);
+bool at_threads_scaled(const die &d);
+die at_type(const die &d);
+uint64_t at_upper_bound(const die &d, expr_context *ctx);
+bool at_use_UTF8(const die &d);
+bool at_variable_parameter(const die &d);
+DW_VIRTUALITY at_virtuality(const die &d);
+DW_VIS at_visibility(const die &d);
 
 //////////////////////////////////////////////////////////////////
 // Utilities
