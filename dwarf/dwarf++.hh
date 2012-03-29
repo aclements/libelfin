@@ -262,6 +262,10 @@ private:
 class die::iterator
 {
 public:
+        iterator() = default;
+        iterator(const iterator &o) = default;
+        iterator(iterator &&o) = default;
+
         const die &operator*() const
         {
                 return d;
@@ -297,7 +301,6 @@ public:
 private:
         friend class die;
 
-        iterator() = default;
         iterator(std::shared_ptr<compilation_unit::impl> cu, sec_offset off);
 
         die d;
