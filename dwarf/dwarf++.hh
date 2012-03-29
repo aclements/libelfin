@@ -32,6 +32,10 @@ struct section;
 struct abbrev_entry;
 struct cursor;
 
+//////////////////////////////////////////////////////////////////
+// DWARF files
+//
+
 /**
  * An exception indicating malformed DWARF data.
  */
@@ -156,6 +160,10 @@ public:
 private:
         std::shared_ptr<impl> m;
 };
+
+//////////////////////////////////////////////////////////////////
+// Debugging information entries (DIEs)
+//
 
 /**
  * A Debugging Information Entry, or DIE.  The basic unit of
@@ -450,6 +458,10 @@ to_string(value::type v);
 
 std::string
 to_string(const value &v);
+
+//////////////////////////////////////////////////////////////////
+// Expressions and location descriptions
+//
 
 /**
  * An exception during expression evaluation.
