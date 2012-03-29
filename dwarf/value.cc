@@ -202,7 +202,7 @@ value::as_cstr(size_t *size_out) const
                 return cur.cstr(size_out);
         case DW_FORM::strp: {
                 sec_offset off = cur.offset();
-                cursor scur(cu->file->get_sec_str(), off);
+                cursor scur(cu->file->get_section(section_type::str), off);
                 return scur.cstr(size_out);
         }
         default:

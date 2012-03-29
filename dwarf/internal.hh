@@ -301,20 +301,27 @@ struct dwarf::impl
 
         std::vector<compilation_unit> compilation_units;
 
-        const std::shared_ptr<section> get_sec_str()
+        const std::shared_ptr<section> get_section(section_type type)
         {
-                if (!sec_str) {
-                        size_t size;
-                        const void *data = l->load(section_type::str, &size);
-                        if (!data)
-                                throw format_error(".debug_str section missing");
-                        sec_str = std::make_shared<section>(section_type::str, data, size);
-                }
-                return sec_str;
+                if (type == section_type::info)
+                        return sec_info;
+                if (type == section_type::abbrev)
+                        return sec_abbrev;
+
+                auto it = sections.find(type);
+                if (it != sections.end())
+                        return it->second;
+
+                size_t size;
+                const void *data = l->load(type, &size);
+                if (!data)
+                        throw format_error(std::string(elf::section_type_to_name(type)) + " section missing");
+                sections[type] = std::make_shared<section>(section_type::str, data, size);
+                return sections[type];
         }
 
 private:
-        std::shared_ptr<section> sec_str;
+        std::map<section_type, std::shared_ptr<section> > sections;
 };
 
 /**
