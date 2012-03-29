@@ -56,6 +56,23 @@ struct section
                 unsigned addr_size = 0)
                 : type(type), begin((char*)begin), end((char*)begin + length),
                   fmt(fmt), addr_size(addr_size) { }
+
+        section(const section &o) = default;
+
+        std::shared_ptr<section> slice(sec_offset start, sec_length len,
+                                       format fmt = format::unknown,
+                                       unsigned addr_size = 0)
+        {
+                if (fmt == format::unknown)
+                        fmt = this->fmt;
+                if (addr_size == 0)
+                        addr_size = this->addr_size;
+
+                return std::make_shared<section>(
+                        type, begin+start,
+                        std::min(len, (sec_length)(end-begin)),
+                        fmt, addr_size);
+        }
 };
 
 /**
