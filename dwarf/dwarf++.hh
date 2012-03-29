@@ -711,6 +711,19 @@ public:
         die_str_map(const die &parent, DW_AT attr,
                     const std::initializer_list<DW_TAG> &accept);
 
+        die_str_map() = default;
+        die_str_map(const die_str_map &o) = default;
+        die_str_map(die_str_map &&o) = default;
+
+        /**
+         * Construct a string map for the type names of parent's
+         * immediate children.
+         *
+         * XXX This should use .debug_pubtypes if parent is a compile
+         * unit's root DIE, but it currently does not.
+         */
+        static die_str_map from_type_names(const die &parent);
+
         /**
          * Return the DIE whose attribute matches val.  If no such DIE
          * exists, return an invalid die object.
@@ -727,7 +740,7 @@ public:
 
 private:
         struct impl;
-        const std::shared_ptr<impl> m;
+        std::shared_ptr<impl> m;
 };
 
 //////////////////////////////////////////////////////////////////

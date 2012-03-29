@@ -65,6 +65,26 @@ die_str_map::die_str_map(const die &parent, DW_AT attr,
 {
 }
 
+die_str_map
+die_str_map::from_type_names(const die &parent)
+{
+        return die_str_map
+                (parent, DW_AT::name,
+                 // All DWARF type tags (this is everything that ends
+                 // with _type except thrown_type).
+                 {DW_TAG::array_type, DW_TAG::class_type,
+                  DW_TAG::enumeration_type, DW_TAG::pointer_type,
+                  DW_TAG::reference_type, DW_TAG::string_type,
+                  DW_TAG::structure_type, DW_TAG::subroutine_type,
+                  DW_TAG::union_type, DW_TAG::ptr_to_member_type,
+                  DW_TAG::set_type, DW_TAG::subrange_type,
+                  DW_TAG::base_type, DW_TAG::const_type,
+                  DW_TAG::file_type, DW_TAG::packed_type,
+                  DW_TAG::volatile_type, DW_TAG::restrict_type,
+                  DW_TAG::interface_type, DW_TAG::unspecified_type,
+                  DW_TAG::shared_type, DW_TAG::rvalue_reference_type});
+}
+
 const die &
 die_str_map::operator[](const char *val) const
 {
