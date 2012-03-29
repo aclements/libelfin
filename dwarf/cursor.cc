@@ -80,13 +80,13 @@ void
 cursor::string(std::string &out)
 {
         size_t size;
-        const char *p = this->string(&size);
+        const char *p = this->cstr(&size);
         out.resize(size);
         memmove(&out.front(), p, size);
 }
 
 const char *
-cursor::string(size_t *size_out)
+cursor::cstr(size_t *size_out)
 {
         // Scan string size
         const char *p = pos;

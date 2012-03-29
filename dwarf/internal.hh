@@ -90,7 +90,7 @@ struct cursor
         std::int64_t sleb128();
         sec_offset offset();
         void string(std::string &out);
-        const char *string(size_t *size_out);
+        const char *cstr(size_t *size_out = nullptr);
 
         void
         ensure(sec_offset bytes)

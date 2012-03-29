@@ -199,11 +199,11 @@ value::as_cstr(size_t *size_out) const
         cursor cur(cu->subsec, offset);
         switch (form) {
         case DW_FORM::string:
-                return cur.string(size_out);
+                return cur.cstr(size_out);
         case DW_FORM::strp: {
                 sec_offset off = cur.offset();
                 cursor scur(cu->file->get_sec_str(), off);
-                return scur.string(size_out);
+                return scur.cstr(size_out);
         }
         default:
                 throw value_type_mismatch("cannot read " + to_string(typ) + " as string");
