@@ -82,7 +82,7 @@ die_str_map::operator[](const char *val) const
                 value dval(d[m->attr]);
                 if (dval.get_type() != value::type::string)
                         continue;
-                const char *dstr = dval.as_string(nullptr);
+                const char *dstr = dval.as_cstr();
                 m->str_map[dstr] = d;
                 if (strcmp(val, dstr) == 0)
                         return m->str_map[dstr];

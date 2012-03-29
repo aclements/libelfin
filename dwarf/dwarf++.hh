@@ -425,7 +425,7 @@ public:
          * data is in use.  *size_out, if not NULL, is set to the
          * length of the returned string without the NUL-terminator.
          */
-        const char *as_string(size_t *size_out) const;
+        const char *as_cstr(size_t *size_out = nullptr) const;
 
 private:
         friend class die;

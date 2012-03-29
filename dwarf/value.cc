@@ -180,7 +180,7 @@ void
 value::as_string(string &buf) const
 {
         size_t size;
-        const char *p = as_string(&size);
+        const char *p = as_cstr(&size);
         buf.resize(size);
         memmove(&buf.front(), p, size);
 }
@@ -189,12 +189,12 @@ string
 value::as_string() const
 {
         size_t size;
-        const char *s = as_string(&size);
+        const char *s = as_cstr(&size);
         return string(s, size);
 }
 
 const char *
-value::as_string(size_t *size_out) const
+value::as_cstr(size_t *size_out) const
 {
         cursor cur(cu->subsec, offset);
         switch (form) {
