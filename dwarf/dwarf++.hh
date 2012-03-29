@@ -472,12 +472,12 @@ public:
         /**
          * Short-hand for evaluate(ctx, {}).
          */
-        expr_result evaluate(expr_context *ctx);
+        expr_result evaluate(expr_context *ctx) const;
 
         /**
          * Short-hand for evaluate(ctx, {argument}).
          */
-        expr_result evaluate(expr_context *ctx, taddr argument);
+        expr_result evaluate(expr_context *ctx, taddr argument) const;
 
         /**
          * Return the result of evaluating this expression using the
@@ -490,7 +490,7 @@ public:
          * expression (such as an unknown operation, stack underflow,
          * bounds error, etc.)
          */
-        expr_result evaluate(expr_context *ctx, std::initializer_list<taddr> arguments);
+        expr_result evaluate(expr_context *ctx, std::initializer_list<taddr> arguments) const;
 
 private:
         // XXX This will need more information for some operations

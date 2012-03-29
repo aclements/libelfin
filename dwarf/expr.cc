@@ -7,19 +7,19 @@ DWARFPP_BEGIN_NAMESPACE
 expr_context no_expr_context;
 
 expr_result
-expr::evaluate(expr_context *ctx)
+expr::evaluate(expr_context *ctx) const
 {
         return evaluate(ctx, {});
 }
 
 expr_result
-expr::evaluate(expr_context *ctx, taddr argument)
+expr::evaluate(expr_context *ctx, taddr argument) const
 {
         return evaluate(ctx, {argument});
 }
 
 expr_result
-expr::evaluate(expr_context *ctx, std::initializer_list<taddr> arguments)
+expr::evaluate(expr_context *ctx, std::initializer_list<taddr> arguments) const
 {
         // The stack machine's stack.  The top of the stack is
         // stack.back().
