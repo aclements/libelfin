@@ -272,13 +272,20 @@ to_string(const value &v)
                 return "<exprloc>";
         case value::type::flag:
                 return v.as_flag() ? "true" : "false";
+        case value::type::lineptr:
+                return "<lineptr 0x" + to_hex(v.as_sec_offset()) + ">";
+        case value::type::loclistptr:
+                return "<loclistptr 0x" + to_hex(v.as_sec_offset()) + ">";
+        case value::type::macptr:
+                return "<macptr 0x" + to_hex(v.as_sec_offset()) + ">";
+        case value::type::rangelistptr:
+                return "<rangelistptr 0x" + to_hex(v.as_sec_offset()) + ">";
         case value::type::reference:
                 return "<0x" + to_hex(v.as_reference().get_section_offset()) + ">";
         case value::type::string:
                 return v.as_string();
-        default:
-                return "<to_string of " + to_string(v.get_type()) + " not implemented>";
         }
+        return "<unexpected value type " + to_string(v.get_type()) + ">";
 }
 
 DWARFPP_END_NAMESPACE
