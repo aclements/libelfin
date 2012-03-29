@@ -213,7 +213,11 @@ AT_UDYNAMIC(byte_stride);
 AT_ADDRESS(entry_pc);
 AT_FLAG(use_UTF8);
 AT_REFERENCE(extension);
-// XXX ranges
+rangelist
+at_ranges(const die &d)
+{
+        return d[DW_AT::ranges].as_rangelist();
+}
 // XXX trampoline
 // XXX const call_column, call_file, call_line
 AT_STRING(description);

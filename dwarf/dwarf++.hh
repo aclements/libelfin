@@ -26,6 +26,7 @@ class value;
 class expr;
 class expr_context;
 class expr_result;
+class rangelist;
 
 // Internal type forward-declarations
 struct section;
@@ -341,6 +342,7 @@ public:
 class value
 {
 public:
+        // XXX Remove the "ptr" suffixes
         enum class type
         {
                 invalid,
@@ -413,7 +415,9 @@ public:
 
         bool as_flag() const;
 
-        // XXX lineptr, loclistptr, macptr, rangelistptr
+        // XXX lineptr, loclistptr, macptr
+
+        rangelist as_rangelist() const;
 
         die as_reference() const;
 
@@ -645,6 +649,105 @@ std::string
 to_string(expr_result::type v);
 
 //////////////////////////////////////////////////////////////////
+// Range lists
+//
+
+/**
+ * A DWARF range list describing a set of possibly non-contiguous
+ * addresses.
+ */
+class rangelist
+{
+public:
+        rangelist(const std::shared_ptr<section> &sec,
+                   taddr base_addr)
+                : sec(sec), base_addr(base_addr) { }
+
+        /**
+         * Construct a range list from a sequence of {low, high}
+         * pairs.
+         */
+        rangelist(const std::initializer_list<std::pair<taddr, taddr> > &ranges);
+
+        rangelist() = default;
+        rangelist(const rangelist &o) = default;
+        rangelist(rangelist &&o) = default;
+
+        class entry;
+        typedef entry value_type;
+
+        class iterator;
+
+        /**
+         * Return an iterator over the entries in this range list.
+         */
+        iterator begin();
+        iterator end();
+
+        /**
+         * Return true if this range list contains the given address.
+         */
+        bool contains(taddr addr);
+
+private:
+        std::vector<taddr> synthetic;
+        std::shared_ptr<section> sec;
+        taddr base_addr;
+};
+
+/**
+ * An entry in a range list.  The range spans addresses [low, high).
+ */
+class rangelist::entry
+{
+public:
+        taddr low, high;
+
+        /**
+         * Return true if addr is within this entry's bounds.
+         */
+        bool contains(taddr addr)
+        {
+                return low <= addr && addr < high;
+        }
+};
+
+/**
+ * An iterator over a sequence of ranges in a range list.
+ */
+class rangelist::iterator
+{
+public:
+        iterator() : sec(nullptr), base_addr(0), pos(0) { }
+        iterator(const iterator &o) = default;
+        iterator(iterator &&o) = default;
+
+        rangelist::entry operator*() const;
+
+        bool operator!=(const iterator &o) const
+        {
+                return sec != o.sec || pos != o.pos;
+        }
+
+        iterator &operator++();
+
+private:
+        iterator(const std::shared_ptr<section> &sec, taddr base_addr)
+                : sec(sec), base_addr(base_addr), pos(0)
+        {
+                sync();
+        }
+
+        friend class rangelist;
+
+        void sync();
+
+        std::shared_ptr<section> sec;
+        taddr base_addr;
+        sec_offset pos;
+};
+
+//////////////////////////////////////////////////////////////////
 // Type-safe attribute getters
 //
 
@@ -701,6 +804,7 @@ die at_priority(const die &d);
 std::string at_producer(const die &d);
 bool at_prototyped(const die &d);
 bool at_pure(const die &d);
+rangelist at_ranges(const die &d);
 bool at_recursive(const die &d);
 die at_sibling(const die &d);
 die at_signature(const die &d);

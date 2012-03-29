@@ -137,6 +137,22 @@ value::as_flag() const
         }
 }
 
+rangelist
+value::as_rangelist() const
+{
+        sec_offset off = as_sec_offset();
+
+        // The compilation unit may not have a base address.  In this
+        // case, the first entry in the range list must be a base
+        // address entry, but we'll just assume 0 for the initial base
+        // address.
+        die cudie = compilation_unit(cu).root();
+        taddr base_addr = cudie.has(DW_AT::low_pc) ? at_low_pc(cudie) : 0;
+        auto sec = cu->file->get_section(section_type::ranges);
+        return rangelist(sec->slice(off, ~0, cu->subsec->fmt,
+                                    cu->subsec->addr_size), base_addr);
+}
+
 die
 value::as_reference() const
 {
