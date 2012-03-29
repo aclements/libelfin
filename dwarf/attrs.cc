@@ -247,4 +247,15 @@ AT_FLAG(const_expr);
 AT_FLAG(enum_class);
 AT_STRING(linkage_name);
 
+rangelist
+die_pc_range(const die &d)
+{
+        // DWARF4 section 2.17
+        if (d.has(DW_AT::ranges))
+                return at_ranges(d);
+        taddr low = at_low_pc(d);
+        taddr high = d.has(DW_AT::high_pc) ? at_high_pc(d) : (low + 1);
+        return rangelist({{low, high}});
+}
+
 DWARFPP_END_NAMESPACE

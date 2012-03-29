@@ -818,6 +818,12 @@ bool at_variable_parameter(const die &d);
 DW_VIRTUALITY at_virtuality(const die &d);
 DW_VIS at_visibility(const die &d);
 
+/**
+ * Return the PC range spanned by the code of a DIE.  The DIE must
+ * have DW_AT::low_pc and may have DW_AT::high_pc or DW_AT::ranges.
+ */
+rangelist die_pc_range(const die &d);
+
 //////////////////////////////////////////////////////////////////
 // Utilities
 //
