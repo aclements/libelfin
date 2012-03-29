@@ -172,6 +172,11 @@ private:
  */
 class die
 {
+        // XXX Make this class better for use in maps.  Currently dies
+        // are fairly big and expensive to copy, but most of that
+        // information can be constructed lazily.  This is also bad
+        // for use in caches since it will keep the DWARF file alive.
+        // OTOH, maybe caches need eviction anyway.
 public:
         DW_TAG tag;
 
@@ -231,9 +236,14 @@ public:
          */
         const std::vector<std::pair<DW_AT, value> > attributes() const;
 
+        bool operator==(const die &o) const;
+        bool operator!=(const die &o) const;
+
 private:
         friend class compilation_unit;
         friend class value;
+        // XXX If we can get the CU, we don't need this
+        friend struct ::std::hash<die>;
 
         std::shared_ptr<compilation_unit::impl> cu;
         // The abbrev of this DIE.  By convention, if this DIE
@@ -924,5 +934,20 @@ namespace elf
 };
 
 DWARFPP_END_NAMESPACE
+
+//////////////////////////////////////////////////////////////////
+// Hash specializations
+//
+
+namespace std
+{
+        template<>
+        struct hash<dwarf::die>
+        {
+                typedef size_t result_type;
+                typedef const dwarf::die &argument_type;
+                result_type operator()(argument_type a) const;
+        };
+}
 
 #endif

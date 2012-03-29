@@ -130,4 +130,23 @@ die::attributes() const
         return res;
 }
 
+bool
+die::operator==(const die &o) const
+{
+        return cu == o.cu && offset == o.offset;
+}
+
+bool
+die::operator!=(const die &o) const
+{
+        return !(*this == o);
+}
+
 DWARFPP_END_NAMESPACE
+
+size_t
+std::hash<dwarf::die>::operator()(const dwarf::die &a) const
+{
+        return hash<decltype(a.cu)>()(a.cu) ^
+                hash<decltype(a.get_unit_offset())>()(a.get_unit_offset());
+}
