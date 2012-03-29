@@ -19,7 +19,7 @@ expr::evaluate(expr_context *ctx, taddr argument) const
 }
 
 expr_result
-expr::evaluate(expr_context *ctx, std::initializer_list<taddr> arguments) const
+expr::evaluate(expr_context *ctx, const std::initializer_list<taddr> &arguments) const
 {
         // The stack machine's stack.  The top of the stack is
         // stack.back().

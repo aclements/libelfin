@@ -502,7 +502,7 @@ public:
          * expression (such as an unknown operation, stack underflow,
          * bounds error, etc.)
          */
-        expr_result evaluate(expr_context *ctx, std::initializer_list<taddr> arguments) const;
+        expr_result evaluate(expr_context *ctx, const std::initializer_list<taddr> &arguments) const;
 
 private:
         // XXX This will need more information for some operations
