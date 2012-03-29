@@ -4,6 +4,8 @@ using namespace std;
 
 DWARFPP_BEGIN_NAMESPACE
 
+expr_context no_expr_context;
+
 expr_result
 expr::evaluate(expr_context *ctx)
 {

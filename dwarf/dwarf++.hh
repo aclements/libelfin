@@ -549,6 +549,13 @@ public:
 };
 
 /**
+ * An instance of expr_context that throws expr_error for all methods.
+ * This is equivalent to the default construction of expr_context, but
+ * often more convenient to use.
+ */
+extern expr_context no_expr_context;
+
+/**
  * The result of evaluating a DWARF expression or location
  * description.
  */
