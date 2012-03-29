@@ -210,6 +210,24 @@ value::as_cstr(size_t *size_out) const
         }
 }
 
+sec_offset
+value::as_sec_offset() const
+{
+        // Prior to DWARF 4, sec_offsets were encoded as data4 or
+        // data8.
+        cursor cur(cu->subsec, offset);
+        switch (form) {
+        case DW_FORM::data4:
+                return cur.fixed<uint32_t>();
+        case DW_FORM::data8:
+                return cur.fixed<uint64_t>();
+        case DW_FORM::sec_offset:
+                return cur.offset();
+        default:
+                throw value_type_mismatch("cannot read " + to_string(typ) + " as sec_offset");
+        }
+}
+
 void
 value::resolve_indirect(DW_AT name)
 {

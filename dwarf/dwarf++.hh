@@ -438,6 +438,12 @@ public:
          */
         const char *as_cstr(size_t *size_out = nullptr) const;
 
+        /**
+         * Return this value as a section offset.  This is applicable
+         * to lineptr, loclistptr, macptr, and rangelistptr.
+         */
+        sec_offset as_sec_offset() const;
+
 private:
         friend class die;
 
