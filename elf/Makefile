@@ -7,7 +7,7 @@ CLEAN :=
 
 libelf++.a: $(SRCS:.cc=.o)
 	ar rcs $@ $^
-CLEAN += elf++.a $(SRCS:.cc=.o)
+CLEAN += libelf++.a $(SRCS:.cc=.o)
 
 $(SRCS:.cc=.o): $(HDRS)
 
