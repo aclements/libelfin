@@ -683,6 +683,9 @@ public:
 
         /**
          * Return an iterator over the entries in this range list.
+         * The ranges returned by this iterator are temporary, so if
+         * you need to store a range for more than one loop iteration,
+         * you must copy it.
          */
         iterator begin();
         iterator end();
@@ -725,7 +728,15 @@ public:
         iterator(const iterator &o) = default;
         iterator(iterator &&o) = default;
 
-        rangelist::entry operator*() const;
+        const rangelist::entry &operator*() const
+        {
+                return entry;
+        }
+
+        const rangelist::entry *operator->() const
+        {
+                return &entry;
+        }
 
         bool operator!=(const iterator &o) const
         {
@@ -739,11 +750,10 @@ private:
 
         friend class rangelist;
 
-        void sync();
-
         std::shared_ptr<section> sec;
         taddr base_addr;
         section_offset pos;
+        rangelist::entry entry;
 };
 
 //////////////////////////////////////////////////////////////////

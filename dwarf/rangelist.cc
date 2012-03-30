@@ -52,53 +52,45 @@ rangelist::contains(taddr addr)
 rangelist::iterator::iterator(const std::shared_ptr<section> &sec, taddr base_addr)
         : sec(sec), base_addr(base_addr), pos(0)
 {
-        sync();
-}
-
-rangelist::entry
-rangelist::iterator::operator*() const
-{
-        cursor cur(sec, pos);
-        taddr low = cur.address() + base_addr;
-        taddr high = cur.address() + base_addr;
-        return {low, high};
+        // Read in the first entry
+        ++(*this);
 }
 
 rangelist::iterator &
 rangelist::iterator::operator++()
-{
-        pos += 2 * sec->addr_size;
-        sync();
-        return *this;
-}
-
-void
-rangelist::iterator::sync()
 {
         // DWARF4 section 2.17.3
         taddr largest_offset = ~(taddr)0;
         if (sec->addr_size < sizeof(taddr))
                 largest_offset += 1 << (8 * sec->addr_size);
 
-        // Process base address selections and end-of-lists
+        // Read in entries until we reach a regular entry of an
+        // end-of-list.  Note that pos points to the beginning of the
+        // entry *following* the current entry, so that's where we
+        // start.
         cursor cur(sec, pos);
         while (true) {
-                pos = cur.get_section_offset();
+                entry.low = cur.address();
+                entry.high = cur.address();
 
-                taddr low = cur.address();
-                taddr high = cur.address();
-
-                if (low == 0 && high == 0) {
+                if (entry.low == 0 && entry.high == 0) {
                         // End of list
                         sec.reset();
                         pos = 0;
-                        return;
-                } else if (low == largest_offset) {
-                        base_addr = high;
+                        break;
+                } else if (entry.low == largest_offset) {
+                        // Base address change
+                        base_addr = entry.high;
                 } else {
-                        return;
+                        // Regular entry.  Adjust by base address.
+                        entry.low += base_addr;
+                        entry.high += base_addr;
+                        pos = cur.get_section_offset();
+                        break;
                 }
         }
+
+        return *this;
 }
 
 DWARFPP_END_NAMESPACE
