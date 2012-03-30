@@ -7,7 +7,7 @@ DWARFPP_BEGIN_NAMESPACE
 expr_context no_expr_context;
 
 expr::expr(const std::shared_ptr<compilation_unit::impl> cu,
-           sec_offset offset, sec_length len)
+           section_offset offset, section_length len)
         : cu(cu), offset(offset), len(len)
 {
 }
@@ -346,7 +346,7 @@ expr::evaluate(expr_context *ctx, const std::initializer_list<taddr> &arguments)
                         if (tmp2.u == 0)
                                 break;
                 skip_common:
-                        cur = cursor(subsec, (int64_t)cur.section_offset() + tmp1.s);
+                        cur = cursor(subsec, (int64_t)cur.get_section_offset() + tmp1.s);
                         break;
                 case DW_OP::call2:
                 case DW_OP::call4:

@@ -7,13 +7,13 @@ using namespace std;
 DWARFPP_BEGIN_NAMESPACE
 
 value::value(const std::shared_ptr<compilation_unit::impl> cu,
-             DW_AT name, DW_FORM form, type typ, sec_offset offset)
+             DW_AT name, DW_FORM form, type typ, section_offset offset)
         : cu(cu), form(form), typ(typ), offset(offset) {
         if (form == DW_FORM::indirect)
                 resolve_indirect(name);
 }
 
-sec_offset
+section_offset
 value::get_section_offset() const
 {
         return cu->info.offset + offset;
@@ -126,7 +126,7 @@ value::as_exprloc() const
         default:
                 throw value_type_mismatch("cannot read " + to_string(typ) + " as exprloc");
         }
-        return expr(cu, cur.section_offset(), size);
+        return expr(cu, cur.get_section_offset(), size);
 }
 
 bool
@@ -147,7 +147,7 @@ value::as_flag() const
 rangelist
 value::as_rangelist() const
 {
-        sec_offset off = as_sec_offset();
+        section_offset off = as_sec_offset();
 
         // The compilation unit may not have a base address.  In this
         // case, the first entry in the range list must be a base
@@ -163,7 +163,7 @@ value::as_rangelist() const
 die
 value::as_reference() const
 {
-        sec_offset off;
+        section_offset off;
         // XXX Would be nice if we could avoid this.  The cursor is
         // all overhead here.
         cursor cur(cu->subsec, offset);
@@ -224,7 +224,7 @@ value::as_cstr(size_t *size_out) const
         case DW_FORM::string:
                 return cur.cstr(size_out);
         case DW_FORM::strp: {
-                sec_offset off = cur.offset();
+                section_offset off = cur.offset();
                 cursor scur(cu->file->get_section(section_type::str), off);
                 return scur.cstr(size_out);
         }
@@ -233,7 +233,7 @@ value::as_cstr(size_t *size_out) const
         }
 }
 
-sec_offset
+section_offset
 value::as_sec_offset() const
 {
         // Prior to DWARF 4, sec_offsets were encoded as data4 or
@@ -263,7 +263,7 @@ value::resolve_indirect(DW_AT name)
                 form = (DW_FORM)c.uleb128();
         } while (form == DW_FORM::indirect);
         typ = attribute_spec(name, form).type;
-        offset = c.section_offset();
+        offset = c.get_section_offset();
 }
 
 string

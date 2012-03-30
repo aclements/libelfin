@@ -32,7 +32,7 @@ cursor::subsection()
 {
         // Section 7.4
         const char *begin = pos;
-        sec_length length = fixed<uword>();
+        section_length length = fixed<uword>();
         format fmt;
         if (length < 0xfffffff0) {
                 fmt = format::dwarf32;
@@ -63,7 +63,7 @@ cursor::skip_initial_length()
         }
 }
 
-sec_offset
+section_offset
 cursor::offset()
 {
         switch (sec->fmt) {
@@ -103,7 +103,7 @@ cursor::cstr(size_t *size_out)
 void
 cursor::skip_form(DW_FORM form)
 {
-        sec_offset tmp;
+        section_offset tmp;
 
         // Section 7.5.4
         switch (form) {

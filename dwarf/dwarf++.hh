@@ -147,7 +147,7 @@ public:
          * Return the byte offset of this compilation unit in the
          * .debug_info section.
          */
-        sec_offset get_section_offset() const;
+        section_offset get_section_offset() const;
 
         /**
          * Return the root DIE of this compilation unit.  This should
@@ -197,7 +197,7 @@ public:
         /**
          * Return this DIE's byte offset within its compilation unit.
          */
-        sec_offset get_unit_offset() const
+        section_offset get_unit_offset() const
         {
                 return offset;
         }
@@ -205,7 +205,7 @@ public:
         /**
          * Return this DIE's byte offset within its section.
          */
-        sec_offset get_section_offset() const;
+        section_offset get_section_offset() const;
 
         /**
          * Return true if this DIE has the requested attribute.
@@ -251,19 +251,19 @@ private:
         // object is kept live by the CU.
         abbrev_entry *abbrev;
         // The beginning of this DIE, relative to the CU.
-        sec_offset offset;
+        section_offset offset;
         // Offsets of attributes, relative to cu's subsection.
-        std::vector<sec_offset> attrs;
+        std::vector<section_offset> attrs;
         // The offset of the next DIE, relative to cu'd subsection.
         // This is set even for sibling list terminators.
-        sec_offset next;
+        section_offset next;
 
         die(std::shared_ptr<compilation_unit::impl> cu);
 
         /**
          * Read this DIE from the given offset in cu.
          */
-        void read(sec_offset off);
+        void read(section_offset off);
 };
 
 /**
@@ -311,7 +311,7 @@ public:
 private:
         friend class die;
 
-        iterator(std::shared_ptr<compilation_unit::impl> cu, sec_offset off);
+        iterator(std::shared_ptr<compilation_unit::impl> cu, section_offset off);
 
         die d;
 };
@@ -378,7 +378,7 @@ public:
          * Return this value's byte offset within its compilation
          * unit.
          */
-        sec_offset get_unit_offset() const
+        section_offset get_unit_offset() const
         {
                 return offset;
         }
@@ -386,7 +386,7 @@ public:
         /**
          * Return this value's byte offset within its section.
          */
-        sec_offset get_section_offset() const;
+        section_offset get_section_offset() const;
 
         type get_type() const
         {
@@ -455,20 +455,20 @@ public:
          * Return this value as a section offset.  This is applicable
          * to lineptr, loclistptr, macptr, and rangelistptr.
          */
-        sec_offset as_sec_offset() const;
+        section_offset as_sec_offset() const;
 
 private:
         friend class die;
 
         value(const std::shared_ptr<compilation_unit::impl> cu,
-              DW_AT name, DW_FORM form, type typ, sec_offset offset);
+              DW_AT name, DW_FORM form, type typ, section_offset offset);
 
         void resolve_indirect(DW_AT name);
 
         std::shared_ptr<compilation_unit::impl> cu;
         DW_FORM form;
         type typ;
-        sec_offset offset;
+        section_offset offset;
 };
 
 std::string
@@ -525,13 +525,13 @@ public:
 private:
         // XXX This will need more information for some operations
         expr(const std::shared_ptr<compilation_unit::impl> cu,
-             sec_offset offset, sec_length len);
+             section_offset offset, section_length len);
 
         friend class value;
 
         std::shared_ptr<compilation_unit::impl> cu;
-        sec_offset offset;
-        sec_length len;
+        section_offset offset;
+        section_length len;
 };
 
 /**
@@ -743,7 +743,7 @@ private:
 
         std::shared_ptr<section> sec;
         taddr base_addr;
-        sec_offset pos;
+        section_offset pos;
 };
 
 //////////////////////////////////////////////////////////////////

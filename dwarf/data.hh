@@ -12,8 +12,9 @@ typedef std::uint8_t ubyte;
 typedef std::uint16_t uhalf;
 typedef std::uint32_t uword;
 
-typedef std::uint64_t sec_offset;
-typedef std::uint64_t sec_length;
+// Section offsets and lengths
+typedef std::uint64_t section_offset;
+typedef std::uint64_t section_length;
 
 // A target machine address.  Targets may use smaller addresses; this
 // represents the largest supported address type.

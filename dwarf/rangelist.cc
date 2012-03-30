@@ -83,7 +83,7 @@ rangelist::iterator::sync()
         // Process base address selections and end-of-lists
         cursor cur(sec, pos);
         while (true) {
-                pos = cur.section_offset();
+                pos = cur.get_section_offset();
 
                 taddr low = cur.address();
                 taddr high = cur.address();

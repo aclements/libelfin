@@ -48,7 +48,7 @@ compilation_unit::compilation_unit(shared_ptr<impl> m)
 {
 }
 
-sec_offset
+section_offset
 compilation_unit::get_section_offset() const
 {
         return m->info.offset;
@@ -59,7 +59,7 @@ compilation_unit::root() const
 {
         m->force_abbrevs();
         die d(m);
-        d.read(m->info.entries.section_offset());
+        d.read(m->info.entries.get_section_offset());
         return d;
 }
 

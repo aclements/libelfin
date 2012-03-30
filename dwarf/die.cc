@@ -9,14 +9,14 @@ die::die(std::shared_ptr<compilation_unit::impl> cu)
 {
 }
 
-sec_offset
+section_offset
 die::get_section_offset() const
 {
         return cu->info.offset + offset;
 }
 
 void
-die::read(sec_offset off)
+die::read(section_offset off)
 {
         cursor cur(cu->subsec, off);
 
@@ -25,7 +25,7 @@ die::read(sec_offset off)
         abbrev_code acode = cur.uleb128();
         if (acode == 0) {
                 abbrev = nullptr;
-                next = cur.section_offset();
+                next = cur.get_section_offset();
                 return;
         }
         abbrev = &cu->abbrevs.at(acode);
@@ -41,10 +41,10 @@ die::read(sec_offset off)
         // variable offsets.
         attrs.clear();
         for (auto &attr : abbrev->attributes) {
-                attrs.push_back(cur.section_offset());
+                attrs.push_back(cur.get_section_offset());
                 cur.skip_form(attr.form);
         }
-        next = cur.section_offset();
+        next = cur.get_section_offset();
 }
 
 bool
@@ -84,7 +84,7 @@ die::begin() const
 }
 
 die::iterator::iterator(std::shared_ptr<compilation_unit::impl> cu,
-                        sec_offset off)
+                        section_offset off)
         : d(cu)
 {
         d.read(off);

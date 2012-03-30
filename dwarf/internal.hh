@@ -52,14 +52,14 @@ struct section
         unsigned addr_size;
 
         section(section_type type, const void *begin,
-                sec_length length, format fmt = format::unknown,
+                section_length length, format fmt = format::unknown,
                 unsigned addr_size = 0)
                 : type(type), begin((char*)begin), end((char*)begin + length),
                   fmt(fmt), addr_size(addr_size) { }
 
         section(const section &o) = default;
 
-        std::shared_ptr<section> slice(sec_offset start, sec_length len,
+        std::shared_ptr<section> slice(section_offset start, section_length len,
                                        format fmt = format::unknown,
                                        unsigned addr_size = 0)
         {
@@ -70,7 +70,7 @@ struct section
 
                 return std::make_shared<section>(
                         type, begin+start,
-                        std::min(len, (sec_length)(end-begin)),
+                        std::min(len, (section_length)(end-begin)),
                         fmt, addr_size);
         }
 };
@@ -92,7 +92,7 @@ struct cursor
 
         cursor()
                 : pos(nullptr) { }
-        cursor(const std::shared_ptr<section> sec, sec_offset offset = 0)
+        cursor(const std::shared_ptr<section> sec, section_offset offset = 0)
                 : sec(sec), pos(sec->begin + offset) { }
 
         /**
@@ -105,14 +105,14 @@ struct cursor
          */
         std::shared_ptr<section> subsection();
         std::int64_t sleb128();
-        sec_offset offset();
+        section_offset offset();
         void string(std::string &out);
         const char *cstr(size_t *size_out = nullptr);
 
         void
-        ensure(sec_offset bytes)
+        ensure(section_offset bytes)
         {
-                if ((sec_offset)(sec->end - pos) < bytes)
+                if ((section_offset)(sec->end - pos) < bytes)
                         underflow();
         }
 
@@ -161,13 +161,13 @@ struct cursor
         void skip_initial_length();
         void skip_form(DW_FORM form);
 
-        cursor &operator+=(sec_offset offset)
+        cursor &operator+=(section_offset offset)
         {
                 pos += offset;
                 return *this;
         }
 
-        cursor operator+(sec_offset offset) const
+        cursor operator+(section_offset offset) const
         {
                 return cursor(sec, pos + offset);
         }
@@ -187,7 +187,7 @@ struct cursor
                 return !!pos;
         }
 
-        sec_offset section_offset() const
+        section_offset get_section_offset() const
         {
                 return pos - sec->begin;
         }
@@ -234,10 +234,10 @@ struct abbrev_entry
 struct info_unit
 {
         // .debug_info-relative offset of this unit
-        sec_offset offset;
+        section_offset offset;
         uhalf version;
         // .debug_abbrev-relative offset of this unit's abbrevs
-        sec_offset debug_abbrev_offset;
+        section_offset debug_abbrev_offset;
         ubyte address_size;
         // Cursor to the first DIE in this unit.  This cursor's
         // section is limited to this unit.
@@ -245,7 +245,7 @@ struct info_unit
 
         void read(cursor *cur)
         {
-                offset = cur->section_offset();
+                offset = cur->get_section_offset();
 
                 // Section 7.5.1.1
                 std::shared_ptr<section> subsec = cur->subsection();
@@ -267,8 +267,8 @@ struct info_unit
 struct name_unit
 {
         uhalf version;
-        sec_offset debug_info_offset;
-        sec_length debug_info_length;
+        section_offset debug_info_offset;
+        section_length debug_info_length;
         // Cursor to the first name_entry in this unit.  This cursor's
         // section is limited to this unit.
         cursor entries;
@@ -293,7 +293,7 @@ struct name_unit
  */
 struct name_entry
 {
-        sec_offset offset;
+        section_offset offset;
         std::string name;
 
         void read(cursor *cur)
