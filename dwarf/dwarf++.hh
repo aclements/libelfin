@@ -547,10 +547,10 @@ public:
         virtual ~expr_context() { }
 
         /**
-         * Return the value stored in register reg.  This is used to
-         * implement DW_OP_breg* operations.
+         * Return the value stored in register regnum.  This is used
+         * to implement DW_OP_breg* operations.
          */
-        virtual taddr reg(unsigned reg)
+        virtual taddr reg(unsigned regnum)
         {
                 throw expr_error("DW_OP_breg* operations not supported");
         }
