@@ -6,6 +6,12 @@ DWARFPP_BEGIN_NAMESPACE
 
 expr_context no_expr_context;
 
+expr::expr(const std::shared_ptr<compilation_unit::impl> cu,
+           sec_offset offset, sec_length len)
+        : cu(cu), offset(offset), len(len)
+{
+}
+
 expr_result
 expr::evaluate(expr_context *ctx) const
 {

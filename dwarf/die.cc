@@ -4,6 +4,11 @@ using namespace std;
 
 DWARFPP_BEGIN_NAMESPACE
 
+die::die(std::shared_ptr<compilation_unit::impl> cu)
+        : cu(cu), abbrev(nullptr)
+{
+}
+
 sec_offset
 die::get_section_offset() const
 {

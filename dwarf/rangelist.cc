@@ -4,6 +4,12 @@ using namespace std;
 
 DWARFPP_BEGIN_NAMESPACE
 
+rangelist::rangelist(const std::shared_ptr<section> &sec,
+                     taddr base_addr)
+        : sec(sec), base_addr(base_addr)
+{
+}
+
 rangelist::rangelist(const initializer_list<pair<taddr, taddr> > &ranges)
 {
         synthetic.reserve(ranges.size() * 2 + 2);
@@ -41,6 +47,12 @@ rangelist::contains(taddr addr)
                 if (ent.contains(addr))
                         return true;
         return false;
+}
+
+rangelist::iterator::iterator(const std::shared_ptr<section> &sec, taddr base_addr)
+        : sec(sec), base_addr(base_addr), pos(0)
+{
+        sync();
 }
 
 rangelist::entry

@@ -258,8 +258,7 @@ private:
         // This is set even for sibling list terminators.
         sec_offset next;
 
-        die(std::shared_ptr<compilation_unit::impl> cu)
-                : cu(cu), abbrev(nullptr) { }
+        die(std::shared_ptr<compilation_unit::impl> cu);
 
         /**
          * Read this DIE from the given offset in cu.
@@ -462,11 +461,7 @@ private:
         friend class die;
 
         value(const std::shared_ptr<compilation_unit::impl> cu,
-              DW_AT name, DW_FORM form, type typ, sec_offset offset)
-                : cu(cu), form(form), typ(typ), offset(offset) {
-                if (form == DW_FORM::indirect)
-                        resolve_indirect(name);
-        }
+              DW_AT name, DW_FORM form, type typ, sec_offset offset);
 
         void resolve_indirect(DW_AT name);
 
@@ -530,8 +525,7 @@ public:
 private:
         // XXX This will need more information for some operations
         expr(const std::shared_ptr<compilation_unit::impl> cu,
-             sec_offset offset, sec_length len)
-                : cu(cu), offset(offset), len(len) { }
+             sec_offset offset, sec_length len);
 
         friend class value;
 
@@ -670,8 +664,7 @@ class rangelist
 {
 public:
         rangelist(const std::shared_ptr<section> &sec,
-                   taddr base_addr)
-                : sec(sec), base_addr(base_addr) { }
+                  taddr base_addr);
 
         /**
          * Construct a range list from a sequence of {low, high}
@@ -742,11 +735,7 @@ public:
         iterator &operator++();
 
 private:
-        iterator(const std::shared_ptr<section> &sec, taddr base_addr)
-                : sec(sec), base_addr(base_addr), pos(0)
-        {
-                sync();
-        }
+        iterator(const std::shared_ptr<section> &sec, taddr base_addr);
 
         friend class rangelist;
 
@@ -908,7 +897,7 @@ namespace elf
                 Elf f;
 
         public:
-                elf_loader(const Elf &f) : f(f) { }
+                elf_loader(const Elf &file) : f(file) { }
 
                 const void *load(section_type section, size_t *size_out)
                 {

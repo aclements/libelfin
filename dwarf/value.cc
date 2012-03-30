@@ -6,6 +6,13 @@ using namespace std;
 
 DWARFPP_BEGIN_NAMESPACE
 
+value::value(const std::shared_ptr<compilation_unit::impl> cu,
+             DW_AT name, DW_FORM form, type typ, sec_offset offset)
+        : cu(cu), form(form), typ(typ), offset(offset) {
+        if (form == DW_FORM::indirect)
+                resolve_indirect(name);
+}
+
 sec_offset
 value::get_section_offset() const
 {
