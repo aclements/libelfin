@@ -339,6 +339,182 @@ enum class DW_OP : ubyte
 std::string
 to_string(DW_OP v);
 
+// DW_AT::encoding constants (DWARF4 section 7.8 figure 25)
+enum class DW_ATE
+{
+        address         = 0x01,
+        boolean         = 0x02,
+        complex_float   = 0x03,
+        float_          = 0x04,
+        signed_         = 0x05,
+        signed_char     = 0x06,
+        unsigned_       = 0x07,
+        unsigned_char   = 0x08,
+        imaginary_float = 0x09,
+        packed_decimal  = 0x0a,
+        numeric_string  = 0x0b,
+        edited          = 0x0c,
+        signed_fixed    = 0x0d,
+        unsigned_fixed  = 0x0e,
+        decimal_float   = 0x0f,
+
+        // DWARF 4
+        UTF             = 0x10,
+
+        lo_user         = 0x80,
+        hi_user         = 0xff,
+};
+
+std::string
+to_string(DW_ATE v);
+
+// DW_AT::decimal_sign constants (DWARF4 section 7.8 figure 26)
+enum class DW_DS
+{
+        unsigned_          = 0x01,
+        leading_overpunch  = 0x02,
+        trailing_overpunch = 0x03,
+        leading_separate   = 0x04,
+        trailing_separate  = 0x05,
+};
+
+std::string
+to_string(DW_DS v);
+
+// DW_AT::endianity constants (DWARF4 section 7.8 figure 27)
+enum class DW_END
+{
+        default_ = 0x00,
+        big      = 0x01,
+        little   = 0x02,
+        lo_user  = 0x40,
+        hi_user  = 0xff,
+};
+
+std::string
+to_string(DW_END v);
+
+// DW_AT::accessibility constants (DWARF4 section 7.9 figure 28)
+enum class DW_ACCESS
+{
+        public_    = 0x01,
+        protected_ = 0x02,
+        private_   = 0x03,
+};
+
+std::string
+to_string(DW_ACCESS v);
+
+// DW_AT::visibility constants (DWARF4 section 7.10 figure 29)
+enum class DW_VIS
+{
+        local     = 0x01,
+        exported  = 0x02,
+        qualified = 0x03,
+};
+
+std::string
+to_string(DW_VIS v);
+
+// DW_AT::virtuality constants (DWARF4 section 7.11 figure 30)
+enum class DW_VIRTUALITY
+{
+        none         = 0x00,
+        virtual_     = 0x01,
+        pure_virtual = 0x02,
+};
+
+std::string
+to_string(DW_VIRTUALITY v);
+
+// DW_AT::language constants (DWARF4 section 7.12 figure 31)
+enum class DW_LANG
+{
+        C89            = 0x0001, // Lower bound 0
+        C              = 0x0002, // Lower bound 0
+        Ada83          = 0x0003, // Lower bound 1
+        C_plus_plus    = 0x0004, // Lower bound 0
+        Cobol74        = 0x0005, // Lower bound 1
+        Cobol85        = 0x0006, // Lower bound 1
+        Fortran77      = 0x0007, // Lower bound 1
+        Fortran90      = 0x0008, // Lower bound 1
+        Pascal83       = 0x0009, // Lower bound 1
+        Modula2        = 0x000a, // Lower bound 1
+        Java           = 0x000b, // Lower bound 0
+        C99            = 0x000c, // Lower bound 0
+        Ada95          = 0x000d, // Lower bound 1
+        Fortran95      = 0x000e, // Lower bound 1
+        PLI            = 0x000f, // Lower bound 1
+
+        ObjC           = 0x0010, // Lower bound 0
+        ObjC_plus_plus = 0x0011, // Lower bound 0
+        UPC            = 0x0012, // Lower bound 0
+        D              = 0x0013, // Lower bound 0
+        Python         = 0x0014, // Lower bound 0
+        lo_user        = 0x8000,
+        hi_user        = 0xffff,
+};
+
+std::string
+to_string(DW_LANG v);
+
+// DW_AT::identifier_case constants (DWARF4 section 7.14 figure 32)
+enum class DW_ID
+{
+        case_sensitive   = 0x00,
+        up_case          = 0x01,
+        down_case        = 0x02,
+        case_insensitive = 0x03,
+};
+
+std::string
+to_string(DW_ID v);
+
+// DW_AT::calling_convention constants (DWARF4 section 7.15 figure 33)
+enum class DW_CC
+{
+        normal = 0x01,
+        program = 0x02,
+        nocall = 0x03,
+        lo_user = 0x40,
+        hi_user = 0xff,
+};
+
+std::string
+to_string(DW_CC v);
+
+// DW_AT::inline constants (DWARF4 section 7.16 figure 34)
+enum class DW_INL
+{
+        not_inlined = 0x00,
+        inlined = 0x01,
+        declared_not_inlined = 0x02,
+        declared_inlined = 0x03,
+};
+
+std::string
+to_string(DW_INL v);
+
+// DW_AT::ordering constants (DWARF4 section 7.17 figure 35)
+enum class DW_ORD
+{
+        row_major = 0x00,
+        col_major = 0x01,
+};
+
+std::string
+to_string(DW_ORD v);
+
+// DW_AT::discr_list constants (DWARF4 section 7.18 figure 36)
+enum class DW_DSC
+{
+        label = 0x00,
+        range = 0x01,
+};
+
+std::string
+to_string(DW_DSC v);
+
 DWARFPP_END_NAMESPACE
 
 #endif
