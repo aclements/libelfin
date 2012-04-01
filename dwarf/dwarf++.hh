@@ -829,7 +829,8 @@ DW_VIS at_visibility(const die &d);
 
 /**
  * Return the PC range spanned by the code of a DIE.  The DIE must
- * have DW_AT::low_pc and may have DW_AT::high_pc or DW_AT::ranges.
+ * either have DW_AT::ranges or DW_AT::low_pc.  It may optionally have
+ * DW_AT::high_pc.
  */
 rangelist die_pc_range(const die &d);
 
