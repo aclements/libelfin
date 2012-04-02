@@ -122,6 +122,20 @@ public:
                 return base[n];
         }
 
+        /**
+         * "Reverse at".  revat(0) is equivalent to back().  revat(1)
+         * is the element before back.  Etc.
+         */
+        reference revat(size_type n)
+        {
+                return *(end - 1 - n);
+        }
+
+        const_reference revat(size_type n) const
+        {
+                return *(end - 1 - n);
+        }
+
         reference front()
         {
                 return base[0];

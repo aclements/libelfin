@@ -29,11 +29,10 @@ expr::evaluate(expr_context *ctx, const std::initializer_list<taddr> &arguments)
 {
         // The stack machine's stack.  The top of the stack is
         // stack.back().
-        // XXX Lots of overhead for usually tiny stacks
         // XXX This stack must be in target machine representation,
         // since I see both (DW_OP_breg0 (eax): -28; DW_OP_stack_value)
         // and (DW_OP_lit1; DW_OP_stack_value).
-        vector<taddr> stack;
+        small_vector<taddr, 8> stack;
 
         // Create the initial stack.  arguments are in reverse order
         // (that is, element 0 is TOS), so reverse it.
@@ -148,24 +147,24 @@ expr::evaluate(expr_context *ctx, const std::initializer_list<taddr> &arguments)
                 case DW_OP::pick:
                         tmp1.u = cur.fixed<uint8_t>();
                         CHECKN(tmp1.u);
-                        stack.push_back(*(stack.rbegin() + tmp1.u));
+                        stack.push_back(stack.revat(tmp1.u));
                         break;
                 case DW_OP::over:
                         CHECKN(2);
-                        stack.push_back(*(stack.rbegin() + 1));
+                        stack.push_back(stack.revat(1));
                         break;
                 case DW_OP::swap:
                         CHECKN(2);
                         tmp1.u = stack.back();
-                        stack.back() = *(stack.rbegin() + 1);
-                        *(stack.rbegin() + 1) = tmp1.u;
+                        stack.back() = stack.revat(1);
+                        stack.revat(1) = tmp1.u;
                         break;
                 case DW_OP::rot:
                         CHECKN(3);
                         tmp1.u = stack.back();
-                        *stack.rbegin() = *(stack.rbegin() + 1);
-                        *(stack.rbegin() + 1) = *(stack.rbegin() + 2);
-                        *(stack.rbegin() + 2) = tmp1.u;
+                        stack.back() = stack.revat(1);
+                        stack.revat(1) = stack.revat(2);
+                        stack.revat(2) = tmp1.u;
                         break;
                 case DW_OP::deref:
                         tmp1.u = subsec->addr_size;
