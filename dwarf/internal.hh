@@ -349,6 +349,7 @@ struct compilation_unit::impl
         const std::shared_ptr<dwarf::impl> file;
         const std::shared_ptr<section> subsec;
         info_unit info;
+        die root;
 
         // Map from abbrev code to abbrev
         std::unordered_map<abbrev_code, abbrev_entry> abbrevs;

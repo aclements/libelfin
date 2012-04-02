@@ -54,13 +54,15 @@ compilation_unit::get_section_offset() const
         return m->info.offset;
 }
 
-const die
+const die&
 compilation_unit::root() const
 {
-        m->force_abbrevs();
-        die d(m);
-        d.read(m->info.entries.get_section_offset());
-        return d;
+        if (!m->root.valid()) {
+                m->force_abbrevs();
+                m->root = die(m);
+                m->root.read(m->info.entries.get_section_offset());
+        }
+        return m->root;
 }
 
 void
