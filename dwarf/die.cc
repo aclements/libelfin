@@ -34,11 +34,6 @@ die::read(section_offset off)
 
         // XXX We can pre-compute almost all of this work in the
         // abbrev_entry.
-        // XXX Profile shows we spend most of our time allocating this
-        // vector's space for new DIEs (iterator() or as_reference()).
-        // We could reserve some number of slots in the DIE itself
-        // since most DIEs are small and even use those only for
-        // variable offsets.
         attrs.clear();
         attrs.reserve(abbrev->attributes.size());
         for (auto &attr : abbrev->attributes) {

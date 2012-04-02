@@ -7,6 +7,7 @@
 #endif
 
 #include "data.hh"
+#include "small_vector.hh"
 
 #include <initializer_list>
 #include <map>
@@ -252,8 +253,10 @@ private:
         const abbrev_entry *abbrev;
         // The beginning of this DIE, relative to the CU.
         section_offset offset;
-        // Offsets of attributes, relative to cu's subsection.
-        std::vector<section_offset> attrs;
+        // Offsets of attributes, relative to cu's subsection.  The
+        // vast majority of DIEs tend to have six or fewer attributes,
+        // so we reserve space in the DIE itself for six attributes.
+        small_vector<section_offset, 6> attrs;
         // The offset of the next DIE, relative to cu'd subsection.
         // This is set even for sibling list terminators.
         section_offset next;
