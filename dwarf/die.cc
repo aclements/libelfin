@@ -28,7 +28,7 @@ die::read(section_offset off)
                 next = cur.get_section_offset();
                 return;
         }
-        abbrev = &cu->abbrevs.at(acode);
+        abbrev = &cu->get_abbrev(acode);
 
         tag = abbrev->tag;
 

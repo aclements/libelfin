@@ -249,7 +249,7 @@ private:
         // The abbrev of this DIE.  By convention, if this DIE
         // represents a sibling list terminator, this is null.  This
         // object is kept live by the CU.
-        abbrev_entry *abbrev;
+        const abbrev_entry *abbrev;
         // The beginning of this DIE, relative to the CU.
         section_offset offset;
         // Offsets of attributes, relative to cu's subsection.

@@ -225,6 +225,8 @@ struct abbrev_entry
         bool children;
         std::vector<attribute_spec> attributes;
 
+        abbrev_entry() : code(0) { }
+
         bool read(cursor *cur);
 };
 
@@ -351,13 +353,20 @@ struct compilation_unit::impl
         info_unit info;
         die root;
 
-        // Map from abbrev code to abbrev
-        std::unordered_map<abbrev_code, abbrev_entry> abbrevs;
-
         impl(std::shared_ptr<dwarf::impl> file, info_unit info)
-                : file(file), subsec(info.entries.sec), info(info) { }
+                : file(file), subsec(info.entries.sec), info(info),
+                  have_abbrevs(false) { }
 
         void force_abbrevs();
+        const abbrev_entry &get_abbrev(abbrev_code acode);
+
+private:
+        // Map from abbrev code to abbrev.  If the map is dense, it
+        // will be stored in the vector; otherwise it will be stored
+        // in the map.
+        bool have_abbrevs;
+        std::vector<abbrev_entry> abbrevs_vec;
+        std::unordered_map<abbrev_code, abbrev_entry> abbrevs_map;
 };
 
 DWARFPP_END_NAMESPACE

@@ -70,14 +70,53 @@ compilation_unit::impl::force_abbrevs()
 {
         // XXX Compilation units can share abbrevs.  Parse each table
         // at most once.
-        if (!abbrevs.empty())
+        if (have_abbrevs)
                 return;
 
         // Section 7.5.3
         cursor c(file->sec_abbrev, info.debug_abbrev_offset);
         abbrev_entry entry;
-        while (entry.read(&c))
-                abbrevs[entry.code] = entry;
+        abbrev_code highest = 0;
+        while (entry.read(&c)) {
+                abbrevs_map[entry.code] = entry;
+                if (entry.code > highest)
+                        highest = entry.code;
+        }
+
+        // Typically, abbrev codes are assigned linearly, so it's more
+        // space efficient and time efficient to store the table in a
+        // vector.  Convert to a vector if it's dense enough, by some
+        // rough estimate of "enough".
+        if (highest * 10 < abbrevs_map.size() * 15) {
+                // Move the map into the vector
+                abbrevs_vec.resize(highest + 1);
+                for (auto &entry : abbrevs_map)
+                        abbrevs_vec[entry.first] = move(entry.second);
+                abbrevs_map.clear();
+        }
+
+        have_abbrevs = true;
+}
+
+const abbrev_entry &
+compilation_unit::impl::get_abbrev(abbrev_code acode)
+{
+        if (!abbrevs_vec.empty()) {
+                if (acode >= abbrevs_vec.size())
+                        goto unknown;
+                const abbrev_entry &entry = abbrevs_vec[acode];
+                if (entry.code == 0)
+                        goto unknown;
+                return entry;
+        } else {
+                auto it = abbrevs_map.find(acode);
+                if (it == abbrevs_map.end())
+                        goto unknown;
+                return it->second;
+        }
+
+unknown:
+        throw format_error("unknown abbrev code 0x" + to_hex(acode));
 }
 
 DWARFPP_END_NAMESPACE
