@@ -40,6 +40,7 @@ die::read(section_offset off)
         // since most DIEs are small and even use those only for
         // variable offsets.
         attrs.clear();
+        attrs.reserve(abbrev->attributes.size());
         for (auto &attr : abbrev->attributes) {
                 attrs.push_back(cur.get_section_offset());
                 cur.skip_form(attr.form);
