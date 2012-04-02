@@ -112,7 +112,7 @@ struct cursor
         void
         ensure(section_offset bytes)
         {
-                if ((section_offset)(sec->end - pos) < bytes)
+                if ((section_offset)(sec->end - pos) < bytes || pos >= sec->end)
                         underflow();
         }
 
