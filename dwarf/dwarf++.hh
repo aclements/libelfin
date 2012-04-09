@@ -185,6 +185,11 @@ public:
         }
 
         /**
+         * Return the dwarf file this unit is in.
+         */
+        const dwarf &get_dwarf() const;
+
+        /**
          * Return the byte offset of this compilation unit in the
          * .debug_info section.
          */
@@ -204,6 +209,17 @@ public:
          * offset bytes into the .debug_info section of file.
          */
         compilation_unit(const dwarf &file, section_offset offset);
+
+        /**
+         * \internal Return the data for this compilation unit.
+         */
+        const std::shared_ptr<section> &data() const;
+
+        /**
+         * \internal Return the abbrev for the specified abbrev
+         * code.
+         */
+        const abbrev_entry &get_abbrev(std::uint64_t acode);
 
 private:
         friend struct ::std::hash<compilation_unit>;

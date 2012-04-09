@@ -117,6 +117,12 @@ compilation_unit::compilation_unit(const dwarf &file, section_offset offset)
                               sub.get_section_offset());
 }
 
+const dwarf &
+compilation_unit::get_dwarf() const
+{
+        return m->file;
+}
+
 section_offset
 compilation_unit::get_section_offset() const
 {
@@ -132,6 +138,19 @@ compilation_unit::root() const
                 m->root.read(m->root_offset);
         }
         return m->root;
+}
+
+const std::shared_ptr<section> &
+compilation_unit::data() const
+{
+        return m->subsec;
+}
+
+const abbrev_entry &
+compilation_unit::get_abbrev(abbrev_code acode)
+{
+        // XXX Fold this in once there are no more impl references
+        return m->get_abbrev(acode);
 }
 
 void
