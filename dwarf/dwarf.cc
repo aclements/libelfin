@@ -20,26 +20,6 @@ struct dwarf::impl
 
         std::vector<compilation_unit> compilation_units;
 
-        std::shared_ptr<section> get_section(section_type type)
-        {
-                if (type == section_type::info)
-                        return sec_info;
-                if (type == section_type::abbrev)
-                        return sec_abbrev;
-
-                auto it = sections.find(type);
-                if (it != sections.end())
-                        return it->second;
-
-                size_t size;
-                const void *data = l->load(type, &size);
-                if (!data)
-                        throw format_error(std::string(elf::section_type_to_name(type)) + " section missing");
-                sections[type] = std::make_shared<section>(section_type::str, data, size);
-                return sections[type];
-        }
-
-private:
         std::map<section_type, std::shared_ptr<section> > sections;
 };
 
@@ -87,9 +67,22 @@ dwarf::compilation_units() const
 std::shared_ptr<section>
 dwarf::get_section(section_type type) const
 {
-        // XXX Fold this in once there are no more direct calls to the
-        // impl
-        return m->get_section(type);
+        if (type == section_type::info)
+                return m->sec_info;
+        if (type == section_type::abbrev)
+                return m->sec_abbrev;
+
+        auto it = m->sections.find(type);
+        if (it != m->sections.end())
+                return it->second;
+
+        size_t size;
+        const void *data = m->l->load(type, &size);
+        if (!data)
+                throw format_error(std::string(elf::section_type_to_name(type))
+                                   + " section missing");
+        m->sections[type] = std::make_shared<section>(section_type::str, data, size);
+        return m->sections[type];
 }
 
 //////////////////////////////////////////////////////////////////
