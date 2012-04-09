@@ -46,6 +46,14 @@ dwarf::compilation_units() const
         return m->compilation_units;
 }
 
+std::shared_ptr<section>
+dwarf::get_section(section_type type) const
+{
+        // XXX Fold this in once there are no more direct calls to the
+        // impl
+        return m->get_section(type);
+}
+
 compilation_unit::compilation_unit(shared_ptr<impl> m)
         : m(m)
 {

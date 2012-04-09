@@ -320,7 +320,7 @@ struct dwarf::impl
 
         std::vector<compilation_unit> compilation_units;
 
-        const std::shared_ptr<section> get_section(section_type type)
+        std::shared_ptr<section> get_section(section_type type)
         {
                 if (type == section_type::info)
                         return sec_info;

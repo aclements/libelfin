@@ -113,6 +113,12 @@ public:
          */
         const std::vector<compilation_unit> &compilation_units() const;
 
+        /**
+         * \internal Retrieve the specified section from this file.
+         * If the section does not exist, throws format_error.
+         */
+        std::shared_ptr<section> get_section(section_type type) const;
+
         struct impl;
 
 private:
