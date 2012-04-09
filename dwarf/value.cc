@@ -6,7 +6,7 @@ using namespace std;
 
 DWARFPP_BEGIN_NAMESPACE
 
-value::value(const std::shared_ptr<compilation_unit::impl> cu,
+value::value(const compilation_unit &cu,
              DW_AT name, DW_FORM form, type typ, section_offset offset)
         : cu(cu), form(form), typ(typ), offset(offset) {
         if (form == DW_FORM::indirect)
@@ -16,7 +16,7 @@ value::value(const std::shared_ptr<compilation_unit::impl> cu,
 section_offset
 value::get_section_offset() const
 {
-        return cu->offset + offset;
+        return cu.get_section_offset() + offset;
 }
 
 taddr
@@ -25,7 +25,7 @@ value::as_address() const
         if (form != DW_FORM::addr)
                 throw value_type_mismatch("cannot read " + to_string(typ) + " as address");
 
-        cursor cur(cu->subsec, offset);
+        cursor cur(cu.data(), offset);
         return cur.address();
 }
 
@@ -38,7 +38,7 @@ value::as_block(size_t *size_out) const
         // references, which couldn't be resolved by callers in the
         // current minimal API.
         // XXX Does automatic coercion
-        cursor cur(cu->subsec, offset);
+        cursor cur(cu.data(), offset);
         switch (form) {
         case DW_FORM::block1:
                 *size_out = cur.fixed<uint8_t>();
@@ -64,7 +64,7 @@ uint64_t
 value::as_uconstant() const
 {
         // XXX Does automatic coercion
-        cursor cur(cu->subsec, offset);
+        cursor cur(cu.data(), offset);
         switch (form) {
         case DW_FORM::data1:
                 return cur.fixed<uint8_t>();
@@ -85,7 +85,7 @@ int64_t
 value::as_sconstant() const
 {
         // XXX Does automatic coercion
-        cursor cur(cu->subsec, offset);
+        cursor cur(cu.data(), offset);
         switch (form) {
         case DW_FORM::data1:
                 return cur.fixed<int8_t>();
@@ -106,7 +106,7 @@ expr
 value::as_exprloc() const
 {
         // XXX Does automatic coercion
-        cursor cur(cu->subsec, offset);
+        cursor cur(cu.data(), offset);
         size_t size;
         // Prior to DWARF 4, exprlocs were encoded as blocks.
         switch (form) {
@@ -134,7 +134,7 @@ value::as_flag() const
 {
         switch (form) {
         case DW_FORM::flag: {
-                cursor cur(cu->subsec, offset);
+                cursor cur(cu.data(), offset);
                 return cur.fixed<ubyte>() != 0;
         }
         case DW_FORM::flag_present:
@@ -153,11 +153,12 @@ value::as_rangelist() const
         // case, the first entry in the range list must be a base
         // address entry, but we'll just assume 0 for the initial base
         // address.
-        die cudie = compilation_unit(cu).root();
+        die cudie = cu.root();
         taddr base_addr = cudie.has(DW_AT::low_pc) ? at_low_pc(cudie) : 0;
-        auto sec = cu->file.get_section(section_type::ranges);
-        return rangelist(sec->slice(off, ~0, cu->subsec->fmt,
-                                    cu->subsec->addr_size), base_addr);
+        auto sec = cu.get_dwarf().get_section(section_type::ranges);
+        auto cusec = cu.data();
+        return rangelist(sec->slice(off, ~0, cusec->fmt, cusec->addr_size),
+                         base_addr);
 }
 
 die
@@ -166,7 +167,7 @@ value::as_reference() const
         section_offset off;
         // XXX Would be nice if we could avoid this.  The cursor is
         // all overhead here.
-        cursor cur(cu->subsec, offset);
+        cursor cur(cu.data(), offset);
         switch (form) {
         case DW_FORM::ref1:
                 off = cur.fixed<ubyte>();
@@ -219,13 +220,13 @@ value::as_string() const
 const char *
 value::as_cstr(size_t *size_out) const
 {
-        cursor cur(cu->subsec, offset);
+        cursor cur(cu.data(), offset);
         switch (form) {
         case DW_FORM::string:
                 return cur.cstr(size_out);
         case DW_FORM::strp: {
                 section_offset off = cur.offset();
-                cursor scur(cu->file.get_section(section_type::str), off);
+                cursor scur(cu.get_dwarf().get_section(section_type::str), off);
                 return scur.cstr(size_out);
         }
         default:
@@ -238,7 +239,7 @@ value::as_sec_offset() const
 {
         // Prior to DWARF 4, sec_offsets were encoded as data4 or
         // data8.
-        cursor cur(cu->subsec, offset);
+        cursor cur(cu.data(), offset);
         switch (form) {
         case DW_FORM::data4:
                 return cur.fixed<uint32_t>();
@@ -257,7 +258,7 @@ value::resolve_indirect(DW_AT name)
         if (form != DW_FORM::indirect)
                 return;
 
-        cursor c(cu->subsec, offset);
+        cursor c(cu.data(), offset);
         DW_FORM form;
         do {
                 form = (DW_FORM)c.uleb128();

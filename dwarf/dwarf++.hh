@@ -311,7 +311,7 @@ private:
         // XXX If we can get the CU, we don't need this
         friend struct ::std::hash<die>;
 
-        std::shared_ptr<compilation_unit::impl> cu;
+        compilation_unit cu;
         // The abbrev of this DIE.  By convention, if this DIE
         // represents a sibling list terminator, this is null.  This
         // object is kept live by the CU.
@@ -326,7 +326,7 @@ private:
         // This is set even for sibling list terminators.
         section_offset next;
 
-        die(std::shared_ptr<compilation_unit::impl> cu);
+        die(const compilation_unit &cu);
 
         /**
          * Read this DIE from the given offset in cu.
@@ -379,7 +379,7 @@ public:
 private:
         friend class die;
 
-        iterator(std::shared_ptr<compilation_unit::impl> cu, section_offset off);
+        iterator(const compilation_unit &cu, section_offset off);
 
         die d;
 };
@@ -528,12 +528,12 @@ public:
 private:
         friend class die;
 
-        value(const std::shared_ptr<compilation_unit::impl> cu,
+        value(const compilation_unit &cu,
               DW_AT name, DW_FORM form, type typ, section_offset offset);
 
         void resolve_indirect(DW_AT name);
 
-        std::shared_ptr<compilation_unit::impl> cu;
+        compilation_unit cu;
         DW_FORM form;
         type typ;
         section_offset offset;
@@ -592,12 +592,12 @@ public:
 
 private:
         // XXX This will need more information for some operations
-        expr(const std::shared_ptr<compilation_unit::impl> cu,
+        expr(const compilation_unit &cu,
              section_offset offset, section_length len);
 
         friend class value;
 
-        std::shared_ptr<compilation_unit::impl> cu;
+        compilation_unit cu;
         section_offset offset;
         section_length len;
 };

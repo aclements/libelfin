@@ -6,7 +6,7 @@ DWARFPP_BEGIN_NAMESPACE
 
 expr_context no_expr_context;
 
-expr::expr(const std::shared_ptr<compilation_unit::impl> cu,
+expr::expr(const compilation_unit &cu,
            section_offset offset, section_length len)
         : cu(cu), offset(offset), len(len)
 {
@@ -43,10 +43,11 @@ expr::evaluate(expr_context *ctx, const std::initializer_list<taddr> &arguments)
 
         // Create a subsection for just this expression so we can
         // easily detect the end (including premature end).
+        auto cusec = cu.data();
         shared_ptr<section> subsec
-                (make_shared<section>(cu->subsec->type,
-                                      cu->subsec->begin + offset, len,
-                                      cu->subsec->fmt, cu->subsec->addr_size));
+                (make_shared<section>(cusec->type,
+                                      cusec->begin + offset, len,
+                                      cusec->fmt, cusec->addr_size));
         cursor cur(subsec);
 
         // Prepare the expression result.  Some location descriptions

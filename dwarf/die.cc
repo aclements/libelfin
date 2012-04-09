@@ -4,7 +4,7 @@ using namespace std;
 
 DWARFPP_BEGIN_NAMESPACE
 
-die::die(std::shared_ptr<compilation_unit::impl> cu)
+die::die(const compilation_unit &cu)
         : cu(cu), abbrev(nullptr)
 {
 }
@@ -12,13 +12,13 @@ die::die(std::shared_ptr<compilation_unit::impl> cu)
 section_offset
 die::get_section_offset() const
 {
-        return cu->offset + offset;
+        return cu.get_section_offset() + offset;
 }
 
 void
 die::read(section_offset off)
 {
-        cursor cur(cu->subsec, off);
+        cursor cur(cu.data(), off);
 
         offset = off;
 
@@ -28,7 +28,7 @@ die::read(section_offset off)
                 next = cur.get_section_offset();
                 return;
         }
-        abbrev = &cu->get_abbrev(acode);
+        abbrev = &cu.get_abbrev(acode);
 
         tag = abbrev->tag;
 
@@ -79,8 +79,7 @@ die::begin() const
         return iterator(cu, next);
 }
 
-die::iterator::iterator(std::shared_ptr<compilation_unit::impl> cu,
-                        section_offset off)
+die::iterator::iterator(const compilation_unit &cu, section_offset off)
         : d(cu)
 {
         d.read(off);
