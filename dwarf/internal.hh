@@ -272,37 +272,6 @@ struct name_entry
         }
 };
 
-/**
- * Implementation of a compilation unit.
- */
-struct compilation_unit::impl
-{
-        const dwarf file;
-        const section_offset offset;
-        const std::shared_ptr<section> subsec;
-        const section_offset debug_abbrev_offset;
-        const section_offset root_offset;
-        die root;
-
-        impl(const dwarf &file, section_offset offset,
-             const std::shared_ptr<section> &subsec,
-             section_offset debug_abbrev_offset, section_offset root_offset)
-                : file(file), offset(offset), subsec(subsec),
-                  debug_abbrev_offset(debug_abbrev_offset),
-                  root_offset(root_offset), have_abbrevs(false) { }
-
-        void force_abbrevs();
-        const abbrev_entry &get_abbrev(abbrev_code acode);
-
-private:
-        // Map from abbrev code to abbrev.  If the map is dense, it
-        // will be stored in the vector; otherwise it will be stored
-        // in the map.
-        bool have_abbrevs;
-        std::vector<abbrev_entry> abbrevs_vec;
-        std::unordered_map<abbrev_code, abbrev_entry> abbrevs_map;
-};
-
 DWARFPP_END_NAMESPACE
 
 #endif

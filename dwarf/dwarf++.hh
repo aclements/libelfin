@@ -201,9 +201,6 @@ public:
          */
         const die &root() const;
 
-        struct impl;
-        compilation_unit(std::shared_ptr<impl> m);
-
         /**
          * \internal Construct a compilation unit whose header begins
          * offset bytes into the .debug_info section of file.
@@ -223,6 +220,7 @@ public:
 
 private:
         friend struct ::std::hash<compilation_unit>;
+        struct impl;
         std::shared_ptr<impl> m;
 };
 
