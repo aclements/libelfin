@@ -161,6 +161,29 @@ public:
 class compilation_unit
 {
 public:
+        compilation_unit() = default;
+        compilation_unit(const compilation_unit &o) = default;
+        compilation_unit(compilation_unit &&o) = default;
+
+        bool operator==(const compilation_unit &o) const
+        {
+                return m == o.m;
+        }
+
+        bool operator!=(const compilation_unit &o) const
+        {
+                return m != o.m;
+        }
+
+        /**
+         * Return true if this object represents a compilation unit.
+         * Default constructed compilation_unit objects are not valid.
+         */
+        bool valid() const
+        {
+                return !!m;
+        }
+
         /**
          * Return the byte offset of this compilation unit in the
          * .debug_info section.
@@ -183,6 +206,7 @@ public:
         compilation_unit(const dwarf &file, section_offset offset);
 
 private:
+        friend struct ::std::hash<compilation_unit>;
         std::shared_ptr<impl> m;
 };
 
@@ -971,6 +995,17 @@ DWARFPP_END_NAMESPACE
 
 namespace std
 {
+        template<>
+        struct hash<dwarf::compilation_unit>
+        {
+                typedef size_t result_type;
+                typedef const dwarf::compilation_unit &argument_type;
+                result_type operator()(argument_type a) const
+                {
+                        return hash<decltype(a.m)>()(a.m);
+                }
+        };
+
         template<>
         struct hash<dwarf::die>
         {
