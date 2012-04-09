@@ -101,6 +101,13 @@ struct compilation_unit::impl
         const section_offset root_offset;
         die root;
 
+        // Map from abbrev code to abbrev.  If the map is dense, it
+        // will be stored in the vector; otherwise it will be stored
+        // in the map.
+        bool have_abbrevs;
+        std::vector<abbrev_entry> abbrevs_vec;
+        std::unordered_map<abbrev_code, abbrev_entry> abbrevs_map;
+
         impl(const dwarf &file, section_offset offset,
              const std::shared_ptr<section> &subsec,
              section_offset debug_abbrev_offset, section_offset root_offset)
@@ -109,15 +116,6 @@ struct compilation_unit::impl
                   root_offset(root_offset), have_abbrevs(false) { }
 
         void force_abbrevs();
-        const abbrev_entry &get_abbrev(abbrev_code acode);
-
-private:
-        // Map from abbrev code to abbrev.  If the map is dense, it
-        // will be stored in the vector; otherwise it will be stored
-        // in the map.
-        bool have_abbrevs;
-        std::vector<abbrev_entry> abbrevs_vec;
-        std::unordered_map<abbrev_code, abbrev_entry> abbrevs_map;
 };
 
 compilation_unit::compilation_unit(const dwarf &file, section_offset offset)
@@ -176,8 +174,25 @@ compilation_unit::data() const
 const abbrev_entry &
 compilation_unit::get_abbrev(abbrev_code acode)
 {
-        // XXX Fold this in once there are no more impl references
-        return m->get_abbrev(acode);
+        if (!m->have_abbrevs)
+                m->force_abbrevs();
+
+        if (!m->abbrevs_vec.empty()) {
+                if (acode >= m->abbrevs_vec.size())
+                        goto unknown;
+                const abbrev_entry &entry = m->abbrevs_vec[acode];
+                if (entry.code == 0)
+                        goto unknown;
+                return entry;
+        } else {
+                auto it = m->abbrevs_map.find(acode);
+                if (it == m->abbrevs_map.end())
+                        goto unknown;
+                return it->second;
+        }
+
+unknown:
+        throw format_error("unknown abbrev code 0x" + to_hex(acode));
 }
 
 void
@@ -185,8 +200,6 @@ compilation_unit::impl::force_abbrevs()
 {
         // XXX Compilation units can share abbrevs.  Parse each table
         // at most once.
-        if (have_abbrevs)
-                return;
 
         // Section 7.5.3
         cursor c(file.get_section(section_type::abbrev),
@@ -212,27 +225,6 @@ compilation_unit::impl::force_abbrevs()
         }
 
         have_abbrevs = true;
-}
-
-const abbrev_entry &
-compilation_unit::impl::get_abbrev(abbrev_code acode)
-{
-        if (!abbrevs_vec.empty()) {
-                if (acode >= abbrevs_vec.size())
-                        goto unknown;
-                const abbrev_entry &entry = abbrevs_vec[acode];
-                if (entry.code == 0)
-                        goto unknown;
-                return entry;
-        } else {
-                auto it = abbrevs_map.find(acode);
-                if (it == abbrevs_map.end())
-                        goto unknown;
-                return it->second;
-        }
-
-unknown:
-        throw format_error("unknown abbrev code 0x" + to_hex(acode));
 }
 
 DWARFPP_END_NAMESPACE
