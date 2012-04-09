@@ -96,6 +96,16 @@ public:
 
         dwarf& operator=(const dwarf &o) = default;
 
+        bool operator==(const dwarf &o) const
+        {
+                return m == o.m;
+        }
+
+        bool operator!=(const dwarf &o) const
+        {
+                return m != o.m;
+        }
+
         /**
          * Return true if this object represents a DWARF file.
          * Default constructed dwarf objects are not valid.
