@@ -167,6 +167,12 @@ public:
         struct impl;
         compilation_unit(std::shared_ptr<impl> m);
 
+        /**
+         * \internal Construct a compilation unit whose header begins
+         * offset bytes into the .debug_info section of file.
+         */
+        compilation_unit(const dwarf &file, section_offset offset);
+
 private:
         std::shared_ptr<impl> m;
 };

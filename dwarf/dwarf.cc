@@ -24,12 +24,11 @@ dwarf::dwarf(const std::shared_ptr<loader> &l)
         // Get compilation units.  Everything derives from these, so
         // there's no point in doing it lazily.
         cursor infocur(m->sec_info);
-        info_unit info;
         while (!infocur.end()) {
-                info.read(&infocur);
                 // XXX Circular reference
-                m->compilation_units.push_back(
-                        make_shared<compilation_unit::impl>(m, info));
+                m->compilation_units.emplace_back(
+                        *this, infocur.get_section_offset());
+                infocur.subsection();
         }
 }
 
@@ -59,10 +58,33 @@ compilation_unit::compilation_unit(shared_ptr<impl> m)
 {
 }
 
+compilation_unit::compilation_unit(const dwarf &file, section_offset offset)
+{
+        uhalf version;
+        // .debug_abbrev-relative offset of this unit's abbrevs
+        section_offset debug_abbrev_offset;
+        ubyte address_size;
+
+        // Read the CU header (DWARF4 section 7.5.1.1)
+        cursor cur(file.get_section(section_type::info), offset);
+        std::shared_ptr<section> subsec = cur.subsection();
+        cursor sub(subsec);
+        sub.skip_initial_length();
+        version = sub.fixed<uhalf>();
+        if (version < 2 || version > 4)
+                throw format_error("unknown info unit version " + std::to_string(version));
+        debug_abbrev_offset = sub.offset();
+        address_size = sub.fixed<ubyte>();
+        subsec->addr_size = address_size;
+
+        m = make_shared<impl>(file, offset, subsec, debug_abbrev_offset,
+                              sub.get_section_offset());
+}
+
 section_offset
 compilation_unit::get_section_offset() const
 {
-        return m->info.offset;
+        return m->offset;
 }
 
 const die&
@@ -71,7 +93,7 @@ compilation_unit::root() const
         if (!m->root.valid()) {
                 m->force_abbrevs();
                 m->root = die(m);
-                m->root.read(m->info.entries.get_section_offset());
+                m->root.read(m->root_offset);
         }
         return m->root;
 }
@@ -85,7 +107,8 @@ compilation_unit::impl::force_abbrevs()
                 return;
 
         // Section 7.5.3
-        cursor c(file->sec_abbrev, info.debug_abbrev_offset);
+        cursor c(file.get_section(section_type::abbrev),
+                 debug_abbrev_offset);
         abbrev_entry entry;
         abbrev_code highest = 0;
         while (entry.read(&c)) {

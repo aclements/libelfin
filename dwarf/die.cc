@@ -12,7 +12,7 @@ die::die(std::shared_ptr<compilation_unit::impl> cu)
 section_offset
 die::get_section_offset() const
 {
-        return cu->info.offset + offset;
+        return cu->offset + offset;
 }
 
 void

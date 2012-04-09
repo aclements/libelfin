@@ -16,7 +16,7 @@ value::value(const std::shared_ptr<compilation_unit::impl> cu,
 section_offset
 value::get_section_offset() const
 {
-        return cu->info.offset + offset;
+        return cu->offset + offset;
 }
 
 taddr
@@ -155,7 +155,7 @@ value::as_rangelist() const
         // address.
         die cudie = compilation_unit(cu).root();
         taddr base_addr = cudie.has(DW_AT::low_pc) ? at_low_pc(cudie) : 0;
-        auto sec = cu->file->get_section(section_type::ranges);
+        auto sec = cu->file.get_section(section_type::ranges);
         return rangelist(sec->slice(off, ~0, cu->subsec->fmt,
                                     cu->subsec->addr_size), base_addr);
 }
@@ -225,7 +225,7 @@ value::as_cstr(size_t *size_out) const
                 return cur.cstr(size_out);
         case DW_FORM::strp: {
                 section_offset off = cur.offset();
-                cursor scur(cu->file->get_section(section_type::str), off);
+                cursor scur(cu->file.get_section(section_type::str), off);
                 return scur.cstr(size_out);
         }
         default:

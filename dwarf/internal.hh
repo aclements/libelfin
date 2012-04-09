@@ -231,39 +231,6 @@ struct abbrev_entry
 };
 
 /**
- * A section header in .debug_info.
- */
-struct info_unit
-{
-        // .debug_info-relative offset of this unit
-        section_offset offset;
-        uhalf version;
-        // .debug_abbrev-relative offset of this unit's abbrevs
-        section_offset debug_abbrev_offset;
-        ubyte address_size;
-        // Cursor to the first DIE in this unit.  This cursor's
-        // section is limited to this unit.
-        cursor entries;
-
-        void read(cursor *cur)
-        {
-                offset = cur->get_section_offset();
-
-                // Section 7.5.1.1
-                std::shared_ptr<section> subsec = cur->subsection();
-                cursor sub(subsec);
-                sub.skip_initial_length();
-                version = sub.fixed<uhalf>();
-                if (version < 2 || version > 4)
-                        throw format_error("unknown info unit version " + std::to_string(version));
-                debug_abbrev_offset = sub.offset();
-                address_size = sub.fixed<ubyte>();
-                sub.sec->addr_size = address_size;
-                entries = sub;
-        }
-};
-
-/**
  * A section header in .debug_pubnames or .debug_pubtypes.
  */
 struct name_unit
@@ -348,14 +315,19 @@ private:
  */
 struct compilation_unit::impl
 {
-        const std::shared_ptr<dwarf::impl> file;
+        const dwarf file;
+        const section_offset offset;
         const std::shared_ptr<section> subsec;
-        info_unit info;
+        const section_offset debug_abbrev_offset;
+        const section_offset root_offset;
         die root;
 
-        impl(std::shared_ptr<dwarf::impl> file, info_unit info)
-                : file(file), subsec(info.entries.sec), info(info),
-                  have_abbrevs(false) { }
+        impl(const dwarf &file, section_offset offset,
+             const std::shared_ptr<section> &subsec,
+             section_offset debug_abbrev_offset, section_offset root_offset)
+                : file(file), offset(offset), subsec(subsec),
+                  debug_abbrev_offset(debug_abbrev_offset),
+                  root_offset(root_offset), have_abbrevs(false) { }
 
         void force_abbrevs();
         const abbrev_entry &get_abbrev(abbrev_code acode);
