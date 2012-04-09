@@ -119,9 +119,8 @@ public:
          */
         std::shared_ptr<section> get_section(section_type type) const;
 
-        struct impl;
-
 private:
+        struct impl;
         std::shared_ptr<impl> m;
 };
 

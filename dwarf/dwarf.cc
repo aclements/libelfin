@@ -4,6 +4,45 @@ using namespace std;
 
 DWARFPP_BEGIN_NAMESPACE
 
+//////////////////////////////////////////////////////////////////
+// class dwarf
+//
+
+struct dwarf::impl
+{
+        impl(const std::shared_ptr<loader> &l)
+                : l(l) { }
+
+        std::shared_ptr<loader> l;
+
+        std::shared_ptr<section> sec_info;
+        std::shared_ptr<section> sec_abbrev;
+
+        std::vector<compilation_unit> compilation_units;
+
+        std::shared_ptr<section> get_section(section_type type)
+        {
+                if (type == section_type::info)
+                        return sec_info;
+                if (type == section_type::abbrev)
+                        return sec_abbrev;
+
+                auto it = sections.find(type);
+                if (it != sections.end())
+                        return it->second;
+
+                size_t size;
+                const void *data = l->load(type, &size);
+                if (!data)
+                        throw format_error(std::string(elf::section_type_to_name(type)) + " section missing");
+                sections[type] = std::make_shared<section>(section_type::str, data, size);
+                return sections[type];
+        }
+
+private:
+        std::map<section_type, std::shared_ptr<section> > sections;
+};
+
 dwarf::dwarf(const std::shared_ptr<loader> &l)
         : m(make_shared<impl>(l))
 {
@@ -52,6 +91,10 @@ dwarf::get_section(section_type type) const
         // impl
         return m->get_section(type);
 }
+
+//////////////////////////////////////////////////////////////////
+// class compilation_unit
+//
 
 compilation_unit::compilation_unit(shared_ptr<impl> m)
         : m(m)
