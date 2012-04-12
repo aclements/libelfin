@@ -93,6 +93,10 @@ to_string(section_type v);
 /**
  * A DWARF file.  This class is internally reference counted and can
  * be efficiently copied.
+ *
+ * Objects retrieved from this object may depend on it; the caller is
+ * responsible for keeping this object live as long as any retrieved
+ * object may be in use.
  */
 class dwarf
 {
@@ -171,30 +175,28 @@ public:
 };
 
 /**
- * A compilation unit within a DWARF file.  Most of the information
- * in a DWARF file is divided up by compilation unit.  This class is
- * internally reference counted and can be efficiently copied.
+ * The base class for a compilation unit or type unit within a DWARF
+ * file.  A unit consists of a rooted tree of DIEs, plus additional
+ * metadata that depends on the type of unit.
  */
-class compilation_unit
+class unit
 {
 public:
-        compilation_unit() = default;
-        compilation_unit(const compilation_unit &o) = default;
-        compilation_unit(compilation_unit &&o) = default;
+        virtual ~unit() = 0;
 
-        bool operator==(const compilation_unit &o) const
+        bool operator==(const unit &o) const
         {
                 return m == o.m;
         }
 
-        bool operator!=(const compilation_unit &o) const
+        bool operator!=(const unit &o) const
         {
                 return m != o.m;
         }
 
         /**
-         * Return true if this object represents a compilation unit.
-         * Default constructed compilation_unit objects are not valid.
+         * Return true if this object is valid.  Default constructed
+         * unit objects are not valid.
          */
         bool valid() const
         {
@@ -207,25 +209,20 @@ public:
         const dwarf &get_dwarf() const;
 
         /**
-         * Return the byte offset of this compilation unit in the
-         * .debug_info section.
+         * Return the byte offset of this unit's header in its
+         * section (.debug_info or .debug_types).
          */
         section_offset get_section_offset() const;
 
         /**
-         * Return the root DIE of this compilation unit.  This should
-         * be a DW_TAG::compilation_unit or DW_TAG::partial_unit.
+         * Return the root DIE of this unit.  For a compilation unit,
+         * this should be a DW_TAG::compilation_unit or
+         * DW_TAG::partial_unit.
          */
         const die &root() const;
 
         /**
-         * \internal Construct a compilation unit whose header begins
-         * offset bytes into the .debug_info section of file.
-         */
-        compilation_unit(const dwarf &file, section_offset offset);
-
-        /**
-         * \internal Return the data for this compilation unit.
+         * \internal Return the data for this unit.
          */
         const std::shared_ptr<section> &data() const;
 
@@ -233,12 +230,31 @@ public:
          * \internal Return the abbrev for the specified abbrev
          * code.
          */
-        const abbrev_entry &get_abbrev(std::uint64_t acode);
+        const abbrev_entry &get_abbrev(std::uint64_t acode) const;
 
-private:
-        friend struct ::std::hash<compilation_unit>;
+protected:
+        friend struct ::std::hash<unit>;
         struct impl;
         std::shared_ptr<impl> m;
+};
+
+/**
+ * A compilation unit within a DWARF file.  Most of the information
+ * in a DWARF file is divided up by compilation unit.  This class is
+ * internally reference counted and can be efficiently copied.
+ */
+class compilation_unit : public unit
+{
+public:
+        compilation_unit() = default;
+        compilation_unit(const compilation_unit &o) = default;
+        compilation_unit(compilation_unit &&o) = default;
+
+        /**
+         * \internal Construct a compilation unit whose header begins
+         * offset bytes into the .debug_info section of file.
+         */
+        compilation_unit(const dwarf &file, section_offset offset);
 };
 
 //////////////////////////////////////////////////////////////////
@@ -259,7 +275,7 @@ class die
 public:
         DW_TAG tag;
 
-        die() : abbrev(nullptr) { }
+        die() : cu(nullptr), abbrev(nullptr) { }
         die(const die &o) = default;
         die(die &&o) = default;
 
@@ -321,12 +337,12 @@ public:
         bool operator!=(const die &o) const;
 
 private:
-        friend class compilation_unit;
+        friend class unit;
         friend class value;
         // XXX If we can get the CU, we don't need this
         friend struct ::std::hash<die>;
 
-        compilation_unit cu;
+        const unit *cu;
         // The abbrev of this DIE.  By convention, if this DIE
         // represents a sibling list terminator, this is null.  This
         // object is kept live by the CU.
@@ -341,7 +357,7 @@ private:
         // This is set even for sibling list terminators.
         section_offset next;
 
-        die(const compilation_unit &cu);
+        die(const unit *cu);
 
         /**
          * Read this DIE from the given offset in cu.
@@ -369,6 +385,7 @@ public:
                 return &d;
         }
 
+        // XXX Make this less confusing by implementing operator== instead
         bool operator!=(const iterator &o) const
         {
                 // Quick test of abbrevs.  In particular, this weeds
@@ -394,7 +411,7 @@ public:
 private:
         friend class die;
 
-        iterator(const compilation_unit &cu, section_offset off);
+        iterator(const unit *cu, section_offset off);
 
         die d;
 };
@@ -543,12 +560,12 @@ public:
 private:
         friend class die;
 
-        value(const compilation_unit &cu,
+        value(const unit *cu,
               DW_AT name, DW_FORM form, type typ, section_offset offset);
 
         void resolve_indirect(DW_AT name);
 
-        compilation_unit cu;
+        const unit *cu;
         DW_FORM form;
         type typ;
         section_offset offset;
@@ -607,12 +624,12 @@ public:
 
 private:
         // XXX This will need more information for some operations
-        expr(const compilation_unit &cu,
+        expr(const unit *cu,
              section_offset offset, section_length len);
 
         friend class value;
 
-        compilation_unit cu;
+        const unit *cu;
         section_offset offset;
         section_length len;
 };
@@ -1028,10 +1045,10 @@ DWARFPP_END_NAMESPACE
 namespace std
 {
         template<>
-        struct hash<dwarf::compilation_unit>
+        struct hash<dwarf::unit>
         {
                 typedef size_t result_type;
-                typedef const dwarf::compilation_unit &argument_type;
+                typedef const dwarf::unit &argument_type;
                 result_type operator()(argument_type a) const
                 {
                         return hash<decltype(a.m)>()(a.m);

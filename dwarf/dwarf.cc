@@ -86,13 +86,13 @@ dwarf::get_section(section_type type) const
 }
 
 //////////////////////////////////////////////////////////////////
-// class compilation_unit
+// class unit
 //
 
 /**
- * Implementation of a compilation unit.
+ * Implementation of a unit.
  */
-struct compilation_unit::impl
+struct unit::impl
 {
         const dwarf file;
         const section_offset offset;
@@ -118,6 +118,7 @@ struct compilation_unit::impl
         void force_abbrevs();
 };
 
+// XXX Move this out of class unit's area
 compilation_unit::compilation_unit(const dwarf &file, section_offset offset)
 {
         uhalf version;
@@ -141,38 +142,41 @@ compilation_unit::compilation_unit(const dwarf &file, section_offset offset)
                               sub.get_section_offset());
 }
 
+unit::~unit()
+{
+}
+
 const dwarf &
-compilation_unit::get_dwarf() const
+unit::get_dwarf() const
 {
         return m->file;
 }
 
 section_offset
-compilation_unit::get_section_offset() const
+unit::get_section_offset() const
 {
         return m->offset;
 }
 
 const die&
-compilation_unit::root() const
+unit::root() const
 {
         if (!m->root.valid()) {
                 m->force_abbrevs();
-                // XXX Circular reference
-                m->root = die(*this);
+                m->root = die(this);
                 m->root.read(m->root_offset);
         }
         return m->root;
 }
 
 const std::shared_ptr<section> &
-compilation_unit::data() const
+unit::data() const
 {
         return m->subsec;
 }
 
 const abbrev_entry &
-compilation_unit::get_abbrev(abbrev_code acode)
+unit::get_abbrev(abbrev_code acode) const
 {
         if (!m->have_abbrevs)
                 m->force_abbrevs();
@@ -196,7 +200,7 @@ unknown:
 }
 
 void
-compilation_unit::impl::force_abbrevs()
+unit::impl::force_abbrevs()
 {
         // XXX Compilation units can share abbrevs.  Parse each table
         // at most once.
