@@ -15,6 +15,12 @@ class loader;
 class section;
 class strtab;
 
+// XXX Audit for binary compatibility
+
+// XXX Provide to_string functions
+
+// XXX Segments, other section types
+
 /**
  * An exception indicating malformed ELF data.
  */

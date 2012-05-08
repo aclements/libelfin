@@ -91,7 +91,9 @@ elf::elf(const std::shared_ptr<loader> &l)
                                        m->hdr.shentsize * m->hdr.shnum);
         for (unsigned i = 0; i < m->hdr.shnum; i++) {
                 const void *sec = ((const char*)sec_data) + i * m->hdr.shentsize;
-                // XXX Circular reference
+                // XXX Circular reference.  Maybe this should be
+                // constructed on the fly?  Canonicalizing the header
+                // isn't super-cheap.
                 m->sections.push_back(section(*this, sec));
         }
 }
