@@ -132,6 +132,8 @@ AT_REFERENCE(containing_type);
 
 DW_INL at_inline(const die &d)
 {
+        // XXX Missing attribute is equivalent to DW_INL_not_inlined
+        // (DWARF4 section 3.3.8)
         return (DW_INL)d[DW_AT::inline_].as_uconstant();
 }
 AT_FLAG(is_optional);

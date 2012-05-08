@@ -122,6 +122,10 @@ die::attributes() const
         if (!abbrev)
                 return res;
 
+        // XXX Quite slow, especially when using this to traverse an
+        // entire DIE tree since each DIE will produce a new vector
+        // (whereas other vectors get reused).  Might be worth a
+        // custom iterator.
         int i = 0;
         for (auto &a : abbrev->attributes) {
                 res.push_back(make_pair(a.name, value(cu, a.name, a.form, a.type, attrs[i])));

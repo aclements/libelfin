@@ -34,6 +34,23 @@ struct section;
 struct abbrev_entry;
 struct cursor;
 
+// XXX Audit for binary-compatibility
+
+// XXX Might be able to reduce private coupling by making class
+// section public (and clean it up and maybe rename it slice) and
+// provide methods to get the backing data of things.
+//
+// XXX Make slice generic, without formatting information?  Still want
+// lightweight cursors, so maybe the cursor methods that need the
+// format should take a const reference to a format stored in the
+// compilation unit?
+
+// XXX operator==/!= and hash functions
+
+// XXX Support non-native byte order
+
+// XXX Indicate DWARF4 in all spec references
+
 //////////////////////////////////////////////////////////////////
 // DWARF files
 //
@@ -653,6 +670,7 @@ public:
  */
 extern expr_context no_expr_context;
 
+// XXX Provide methods to check type and fetch value?
 /**
  * The result of evaluating a DWARF expression or location
  * description.
