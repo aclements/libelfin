@@ -47,7 +47,9 @@ dwarf::dwarf(const std::shared_ptr<loader> &l)
         // there's no point in doing it lazily.
         cursor infocur(m->sec_info);
         while (!infocur.end()) {
-                // XXX Circular reference
+                // XXX Circular reference.  Given that we now require
+                // the dwarf object to stick around for DIEs, maybe we
+                // might as well require that for units, too.
                 m->compilation_units.emplace_back(
                         *this, infocur.get_section_offset());
                 infocur.subsection();

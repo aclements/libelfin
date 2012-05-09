@@ -17,6 +17,7 @@ resolve_type(DW_AT name, DW_FORM form)
         case DW_FORM::block4:
                 // Prior to DWARF 4, exprlocs didn't have their own
                 // form and were represented as blocks.
+                // XXX Should this be predicated on version?
                 switch (name) {
                 case DW_AT::location:
                 case DW_AT::byte_size:

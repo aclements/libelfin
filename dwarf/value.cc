@@ -32,12 +32,9 @@ value::as_address() const
 const void *
 value::as_block(size_t *size_out) const
 {
-        // XXX It appears that expressions are often encoded as
-        // blocks, not as exprlocs.  Need DW_AT-aware types?
         // XXX Blocks can contain all sorts of things, including
         // references, which couldn't be resolved by callers in the
         // current minimal API.
-        // XXX Does automatic coercion
         cursor cur(cu->data(), offset);
         switch (form) {
         case DW_FORM::block1:
@@ -63,7 +60,6 @@ value::as_block(size_t *size_out) const
 uint64_t
 value::as_uconstant() const
 {
-        // XXX Does automatic coercion
         cursor cur(cu->data(), offset);
         switch (form) {
         case DW_FORM::data1:
@@ -84,7 +80,6 @@ value::as_uconstant() const
 int64_t
 value::as_sconstant() const
 {
-        // XXX Does automatic coercion
         cursor cur(cu->data(), offset);
         switch (form) {
         case DW_FORM::data1:
@@ -105,7 +100,6 @@ value::as_sconstant() const
 expr
 value::as_exprloc() const
 {
-        // XXX Does automatic coercion
         cursor cur(cu->data(), offset);
         size_t size;
         // Prior to DWARF 4, exprlocs were encoded as blocks.
