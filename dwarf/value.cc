@@ -185,9 +185,21 @@ value::as_reference() const
                 off = cur.uleb128();
                 break;
 
-                // XXX Implement
-        case DW_FORM::ref_addr:
-                throw runtime_error("DW_FORM::ref_addr not implemented");
+        case DW_FORM::ref_addr: {
+                off = cur.offset();
+                // These seem to be extremely rare in practice (I
+                // haven't been able to get gcc to produce a
+                // ref_addr), so it's not worth caching this lookup.
+                const compilation_unit *base_cu = nullptr;
+                for (auto &file_cu : cu->get_dwarf().compilation_units()) {
+                        if (file_cu.get_section_offset() > off)
+                                break;
+                        base_cu = &file_cu;
+                }
+                die d(base_cu);
+                d.read(off - base_cu->get_section_offset());
+                return d;
+        }
 
         case DW_FORM::ref_sig8: {
                 uint64_t sig = cur.fixed<uint64_t>();
