@@ -497,6 +497,9 @@ public:
  * type "uconstant" or "sconstant", while other constant forms have
  * type "constant".  If the value's type is "constant", it can be
  * retrieved using either as_uconstant or as_sconstant.
+ *
+ * Some other types can also be coerced.  These are documented on the
+ * individual as_* methods.
  */
 class value
 {
@@ -555,6 +558,9 @@ public:
                 return form;
         }
 
+        /**
+         * Return this value as a target machine address.
+         */
         taddr as_address() const;
 
         /**
@@ -563,21 +569,52 @@ public:
          * that remains valid as long as the data is in use.
          * *size_out is set to the length of the returned block, in
          * bytes.
+         *
+         * This automatically coerces "exprloc" type values by
+         * returning the raw bytes of the encoded expression.
          */
         const void *as_block(size_t *size_out) const;
 
+        /**
+         * Return this value as an unsigned constant.  This
+         * automatically coerces "constant" type values by
+         * interpreting their bytes as unsigned.
+         */
         uint64_t as_uconstant() const;
 
+        /**
+         * Return this value as a signed constant.  This automatically
+         * coerces "constant" type values by interpreting their bytes
+         * as twos-complement signed values.
+         */
         int64_t as_sconstant() const;
 
+        /**
+         * Return this value as an expression.  This automatically
+         * coerces "block" type values by interpreting the bytes in
+         * the block as an expression (prior to DWARF 4, exprlocs were
+         * always encoded as blocks, though the library automatically
+         * distinguishes these types based on context).
+         */
         expr as_exprloc() const;
 
+        /**
+         * Return this value as a boolean flag.
+         */
         bool as_flag() const;
 
         // XXX lineptr, loclistptr, macptr
 
+        /**
+         * Return this value as a rangelist.
+         */
         rangelist as_rangelist() const;
 
+        /**
+         * For a reference type value, return the referenced DIE.
+         * This DIE may be in a different compilation unit or could
+         * be a DIE in a type unit.
+         */
         die as_reference() const;
 
         /**
