@@ -99,7 +99,13 @@ struct unit::impl
         const std::shared_ptr<section> subsec;
         const section_offset debug_abbrev_offset;
         const section_offset root_offset;
-        die root;
+
+        // Type unit-only values
+        const uint64_t type_signature;
+        const section_offset type_offset;
+
+        // Lazily constructed root and type DIEs
+        die root, type;
 
         // Map from abbrev code to abbrev.  If the map is dense, it
         // will be stored in the vector; otherwise it will be stored
@@ -110,10 +116,12 @@ struct unit::impl
 
         impl(const dwarf &file, section_offset offset,
              const std::shared_ptr<section> &subsec,
-             section_offset debug_abbrev_offset, section_offset root_offset)
+             section_offset debug_abbrev_offset, section_offset root_offset,
+             uint64_t type_signature = 0, section_offset type_offset = 0)
                 : file(file), offset(offset), subsec(subsec),
                   debug_abbrev_offset(debug_abbrev_offset),
-                  root_offset(root_offset), have_abbrevs(false) { }
+                  root_offset(root_offset), type_signature(type_signature),
+                  type_offset(type_offset), have_abbrevs(false) { }
 
         void force_abbrevs();
 };
@@ -180,6 +188,8 @@ unit::impl::force_abbrevs()
 {
         // XXX Compilation units can share abbrevs.  Parse each table
         // at most once.
+        if (have_abbrevs)
+                return;
 
         // Section 7.5.3
         cursor c(file.get_section(section_type::abbrev),
@@ -213,25 +223,64 @@ unit::impl::force_abbrevs()
 
 compilation_unit::compilation_unit(const dwarf &file, section_offset offset)
 {
-        uhalf version;
-        // .debug_abbrev-relative offset of this unit's abbrevs
-        section_offset debug_abbrev_offset;
-        ubyte address_size;
-
         // Read the CU header (DWARF4 section 7.5.1.1)
         cursor cur(file.get_section(section_type::info), offset);
         std::shared_ptr<section> subsec = cur.subsection();
         cursor sub(subsec);
         sub.skip_initial_length();
-        version = sub.fixed<uhalf>();
+        uhalf version = sub.fixed<uhalf>();
         if (version < 2 || version > 4)
-                throw format_error("unknown info unit version " + std::to_string(version));
-        debug_abbrev_offset = sub.offset();
-        address_size = sub.fixed<ubyte>();
+                throw format_error("unknown compilation unit version " + std::to_string(version));
+        // .debug_abbrev-relative offset of this unit's abbrevs
+        section_offset debug_abbrev_offset = sub.offset();
+        ubyte address_size = sub.fixed<ubyte>();
         subsec->addr_size = address_size;
 
         m = make_shared<impl>(file, offset, subsec, debug_abbrev_offset,
                               sub.get_section_offset());
+}
+
+//////////////////////////////////////////////////////////////////
+// class type_unit
+//
+
+type_unit::type_unit(const dwarf &file, section_offset offset)
+{
+        // Read the type unit header (DWARF4 section 7.5.1.2)
+        cursor cur(file.get_section(section_type::types), offset);
+        std::shared_ptr<section> subsec = cur.subsection();
+        cursor sub(subsec);
+        sub.skip_initial_length();
+        uhalf version = sub.fixed<uhalf>();
+        if (version != 4)
+                throw format_error("unknown type unit version " + std::to_string(version));
+        // .debug_abbrev-relative offset of this unit's abbrevs
+        section_offset debug_abbrev_offset = sub.offset();
+        ubyte address_size = sub.fixed<ubyte>();
+        subsec->addr_size = address_size;
+        uint64_t type_signature = sub.fixed<uint64_t>();
+        section_offset type_offset = sub.offset();
+
+        m = make_shared<impl>(file, offset, subsec, debug_abbrev_offset,
+                              sub.get_section_offset(), type_signature,
+                              type_offset);
+}
+
+uint64_t
+type_unit::get_type_signature() const
+{
+        return m->type_signature;
+}
+
+const die &
+type_unit::type() const
+{
+        if (!m->type.valid()) {
+                m->force_abbrevs();
+                m->type = die(this);
+                m->type.read(m->type_offset);
+        }
+        return m->type;
 }
 
 DWARFPP_END_NAMESPACE

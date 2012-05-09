@@ -257,6 +257,42 @@ public:
         compilation_unit(const dwarf &file, section_offset offset);
 };
 
+/**
+ * A type unit.  Type units allow complex type information to be
+ * shared between compilation units.
+ */
+class type_unit : public unit
+{
+public:
+        type_unit() = default;
+        type_unit(const type_unit &o) = default;
+        type_unit(type_unit &&o) = default;
+
+        /**
+         * \internal Construct a type unit whose header begins offset
+         * bytes into the .debug_types section of file.
+         */
+        type_unit(const dwarf &file, section_offset offset);
+
+        /**
+         * Return the 64-bit unique signature that identifies this
+         * type unit.  This is how DIEs from other units refer to type
+         * described by this unit.
+         */
+        uint64_t get_type_signature() const;
+
+        // XXX Can a type unit contain more than one top-level DIE?
+        // The description of type_offset makes it sound like it
+        // might.
+
+        /**
+         * Return the DIE of the type described by this type unit.
+         * This may not be the root DIE of this unit if the type is
+         * nested in namespaces or other structures.
+         */
+        const die &type() const;
+};
+
 //////////////////////////////////////////////////////////////////
 // Debugging information entries (DIEs)
 //
@@ -338,6 +374,7 @@ public:
 
 private:
         friend class unit;
+        friend class type_unit;
         friend class value;
         // XXX If we can get the CU, we don't need this
         friend struct ::std::hash<die>;
