@@ -188,8 +188,15 @@ value::as_reference() const
                 // XXX Implement
         case DW_FORM::ref_addr:
                 throw runtime_error("DW_FORM::ref_addr not implemented");
-        case DW_FORM::ref_sig8:
-                throw runtime_error("DW_FORM::ref_sig8 not implemented");
+
+        case DW_FORM::ref_sig8: {
+                uint64_t sig = cur.fixed<uint64_t>();
+                try {
+                        return cu->get_dwarf().get_type_unit(sig).type();
+                } catch (std::out_of_range &e) {
+                        throw format_error("unknown type signature 0x" + to_hex(sig));
+                }
+        }
 
         default:
                 throw value_type_mismatch("cannot read " + to_string(typ) + " as reference");

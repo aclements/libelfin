@@ -22,6 +22,7 @@ DWARFPP_BEGIN_NAMESPACE
 class dwarf;
 class loader;
 class compilation_unit;
+class type_unit;
 class die;
 class value;
 class expr;
@@ -143,6 +144,13 @@ public:
          * Return the list of compilation units in this DWARF file.
          */
         const std::vector<compilation_unit> &compilation_units() const;
+
+        /**
+         * Return the type unit with the given signature.  If the
+         * signature does not correspond to a type unit, throws
+         * out_of_range.
+         */
+        const type_unit &get_type_unit(uint64_t type_signature) const;
 
         /**
          * \internal Retrieve the specified section from this file.

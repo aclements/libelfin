@@ -11,7 +11,7 @@ DWARFPP_BEGIN_NAMESPACE
 struct dwarf::impl
 {
         impl(const std::shared_ptr<loader> &l)
-                : l(l) { }
+                : l(l), have_type_units(false) { }
 
         std::shared_ptr<loader> l;
 
@@ -19,6 +19,9 @@ struct dwarf::impl
         std::shared_ptr<section> sec_abbrev;
 
         std::vector<compilation_unit> compilation_units;
+
+        std::unordered_map<uint64_t, type_unit> type_units;
+        bool have_type_units;
 
         std::map<section_type, std::shared_ptr<section> > sections;
 };
@@ -62,6 +65,24 @@ dwarf::compilation_units() const
         if (!m)
                 return empty;
         return m->compilation_units;
+}
+
+const type_unit &
+dwarf::get_type_unit(uint64_t type_signature) const
+{
+        if (!m->have_type_units) {
+                cursor tucur(get_section(section_type::types));
+                while (!tucur.end()) {
+                        // XXX Circular reference
+                        type_unit tu(*this, tucur.get_section_offset());
+                        m->type_units[tu.get_type_signature()] = tu;
+                        tucur.subsection();
+                }
+                m->have_type_units = true;
+        }
+        if (!m->type_units.count(type_signature))
+                throw out_of_range("type signature 0x" + to_hex(type_signature));
+        return m->type_units[type_signature];
 }
 
 std::shared_ptr<section>
