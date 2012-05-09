@@ -311,8 +311,13 @@ to_string(const value &v)
                 return "<macptr 0x" + to_hex(v.as_sec_offset()) + ">";
         case value::type::rangelistptr:
                 return "<rangelistptr 0x" + to_hex(v.as_sec_offset()) + ">";
-        case value::type::reference:
-                return "<0x" + to_hex(v.as_reference().get_section_offset()) + ">";
+        case value::type::reference: {
+                die d = v.as_reference();
+                auto tu = dynamic_cast<const type_unit*>(&d.get_unit());
+                if (tu)
+                        return "<.debug_types+0x" + to_hex(d.get_section_offset()) + ">";
+                return "<0x" + to_hex(d.get_section_offset()) + ">";
+        }
         case value::type::string:
                 return v.as_string();
         }

@@ -336,6 +336,11 @@ public:
         }
 
         /**
+         * Return the unit containing this DIE.
+         */
+        const unit &get_unit() const;
+
+        /**
          * Return this DIE's byte offset within its compilation unit.
          */
         section_offset get_unit_offset() const

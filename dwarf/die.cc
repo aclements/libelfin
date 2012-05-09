@@ -9,6 +9,12 @@ die::die(const unit *cu)
 {
 }
 
+const unit &
+die::get_unit() const
+{
+        return *cu;
+}
+
 section_offset
 die::get_section_offset() const
 {
