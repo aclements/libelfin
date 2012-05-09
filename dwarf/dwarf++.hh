@@ -504,7 +504,6 @@ public:
 class value
 {
 public:
-        // XXX Remove the "ptr" suffixes
         enum class type
         {
                 invalid,
@@ -515,10 +514,10 @@ public:
                 sconstant,
                 exprloc,
                 flag,
-                lineptr,
-                loclistptr,
-                macptr,
-                rangelistptr,
+                line,
+                loclist,
+                mac,
+                rangelist,
                 reference,
                 string
         };

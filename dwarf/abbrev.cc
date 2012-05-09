@@ -109,7 +109,7 @@ resolve_type(DW_AT name, DW_FORM form)
                 // The type of this form depends on the attribute
                 switch (name) {
                 case DW_AT::stmt_list:
-                        return value::type::lineptr;
+                        return value::type::line;
 
                 case DW_AT::location:
                 case DW_AT::string_length:
@@ -120,14 +120,14 @@ resolve_type(DW_AT name, DW_FORM form)
                 case DW_AT::static_link:
                 case DW_AT::use_location:
                 case DW_AT::vtable_elem_location:
-                        return value::type::loclistptr;
+                        return value::type::loclist;
 
                 case DW_AT::macro_info:
-                        return value::type::macptr;
+                        return value::type::mac;
 
                 case DW_AT::start_scope:
                 case DW_AT::ranges:
-                        return value::type::rangelistptr;
+                        return value::type::rangelist;
 
                 default:
                         throw format_error("DW_FORM_sec_offset not expected for attribute " +

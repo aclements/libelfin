@@ -309,14 +309,14 @@ to_string(const value &v)
                 return "<exprloc>";
         case value::type::flag:
                 return v.as_flag() ? "true" : "false";
-        case value::type::lineptr:
-                return "<lineptr 0x" + to_hex(v.as_sec_offset()) + ">";
-        case value::type::loclistptr:
-                return "<loclistptr 0x" + to_hex(v.as_sec_offset()) + ">";
-        case value::type::macptr:
-                return "<macptr 0x" + to_hex(v.as_sec_offset()) + ">";
-        case value::type::rangelistptr:
-                return "<rangelistptr 0x" + to_hex(v.as_sec_offset()) + ">";
+        case value::type::line:
+                return "<line 0x" + to_hex(v.as_sec_offset()) + ">";
+        case value::type::loclist:
+                return "<loclist 0x" + to_hex(v.as_sec_offset()) + ">";
+        case value::type::mac:
+                return "<mac 0x" + to_hex(v.as_sec_offset()) + ">";
+        case value::type::rangelist:
+                return "<rangelist 0x" + to_hex(v.as_sec_offset()) + ">";
         case value::type::reference: {
                 die d = v.as_reference();
                 auto tu = dynamic_cast<const type_unit*>(&d.get_unit());

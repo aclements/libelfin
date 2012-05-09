@@ -166,7 +166,7 @@ at_data_member_location(const die &d, expr_context *ctx, taddr base, taddr pc)
                 return {expr_result::type::address, base + v.as_uconstant()};
         case value::type::exprloc:
                 return v.as_exprloc().evaluate(ctx, base);
-        case value::type::loclistptr:
+        case value::type::loclist:
                 // XXX
                 throw std::runtime_error("not implemented");
         default:
