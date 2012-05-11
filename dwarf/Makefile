@@ -2,7 +2,8 @@ CXXFLAGS+=-g -O2 -Werror
 override CXXFLAGS+=-std=c++0x -Wall
 
 SRCS := dwarf.cc cursor.cc die.cc value.cc abbrev.cc \
-	expr.cc rangelist.cc attrs.cc die_str_map.cc elf.cc to_string.cc
+	expr.cc rangelist.cc line.cc attrs.cc \
+	die_str_map.cc elf.cc to_string.cc
 HDRS := dwarf++.hh data.hh internal.hh small_vector.hh
 CLEAN :=
 

@@ -516,6 +516,46 @@ enum class DW_DSC
 std::string
 to_string(DW_DSC v);
 
+// Line number standard opcodes (DWARF4 section 7.21 figure 37)
+enum class DW_LNS
+{
+        copy = 0x01,
+        advance_pc = 0x02,
+        advance_line = 0x03,
+        set_file = 0x04,
+        set_column = 0x05,
+        negate_stmt = 0x06,
+        set_basic_block = 0x07,
+        const_add_pc = 0x08,
+        fixed_advance_pc = 0x09,
+
+        // DWARF 3
+        set_prologue_end = 0x0a,
+        set_epilogue_begin = 0x0b,
+        set_isa = 0x0c,
+};
+
+std::string
+to_string(DW_LNS v);
+
+// Line number extended opcodes (DWARF4 section 7.21 figure 38)
+enum class DW_LNE
+{
+        end_sequence = 0x01,
+        set_address = 0x02,
+        define_file = 0x03,
+
+        // DWARF 4
+        set_discriminator = 0x04,
+
+        // DWARF 3
+        lo_user = 0x80,
+        hi_user = 0xff,
+};
+
+std::string
+to_string(DW_LNE v);
+
 DWARFPP_END_NAMESPACE
 
 #endif
