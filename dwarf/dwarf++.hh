@@ -29,6 +29,7 @@ class expr;
 class expr_context;
 class expr_result;
 class rangelist;
+class line_table;
 
 // Internal type forward-declarations
 struct section;
@@ -263,6 +264,13 @@ public:
          * offset bytes into the .debug_info section of file.
          */
         compilation_unit(const dwarf &file, section_offset offset);
+
+        /**
+         * Return the line number table of this compilation unit.
+         * Returns an invalid line table if this unit has no line
+         * table.
+         */
+        const line_table &get_line_table() const;
 };
 
 /**

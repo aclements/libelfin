@@ -130,6 +130,9 @@ struct unit::impl
         // Lazily constructed root and type DIEs
         die root, type;
 
+        // Lazily constructed line table
+        line_table lt;
+
         // Map from abbrev code to abbrev.  If the map is dense, it
         // will be stored in the vector; otherwise it will be stored
         // in the map.
@@ -261,6 +264,30 @@ compilation_unit::compilation_unit(const dwarf &file, section_offset offset)
 
         m = make_shared<impl>(file, offset, subsec, debug_abbrev_offset,
                               sub.get_section_offset());
+}
+
+const line_table &
+compilation_unit::get_line_table() const
+{
+        if (!m->lt.valid()) {
+                const die &d = root();
+                if (!d.has(DW_AT::stmt_list) || !d.has(DW_AT::name) ||
+                    !d.has(DW_AT::comp_dir))
+                        goto done;
+
+                shared_ptr<section> sec;
+                try {
+                        sec = m->file.get_section(section_type::line);
+                } catch (format_error &e) {
+                        goto done;
+                }
+
+                m->lt = line_table(sec, d[DW_AT::stmt_list].as_sec_offset(),
+                                   m->subsec->addr_size, at_comp_dir(d),
+                                   at_name(d));
+        }
+done:
+        return m->lt;
 }
 
 //////////////////////////////////////////////////////////////////
