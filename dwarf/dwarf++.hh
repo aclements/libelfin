@@ -508,6 +508,11 @@ public:
  *
  * Some other types can also be coerced.  These are documented on the
  * individual as_* methods.
+ *
+ * There is no as_line; while there is an attribute for line tables,
+ * line tables are really associated with compilation units (and
+ * require additional context from the compilation unit).  Use
+ * compilation_unit::get_line_table instead.
  */
 class value
 {
@@ -610,7 +615,7 @@ public:
          */
         bool as_flag() const;
 
-        // XXX lineptr, loclistptr, macptr
+        // XXX loclistptr, macptr
 
         /**
          * Return this value as a rangelist.
