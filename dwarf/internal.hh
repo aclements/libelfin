@@ -73,6 +73,11 @@ struct section
                         std::min(len, (section_length)(end-begin)),
                         fmt, addr_size);
         }
+
+        size_t size() const
+        {
+                return end - begin;
+        }
 };
 
 /**
