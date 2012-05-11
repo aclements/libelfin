@@ -16,12 +16,12 @@ cursor::sleb128()
         while (pos < sec->end) {
                 uint8_t byte = *(uint8_t*)(pos++);
                 result |= (uint64_t)(byte & 0x7f) << shift;
+                shift += 7;
                 if ((byte & 0x80) == 0) {
                         if (shift < sizeof(result)*8 && (byte & 0x40))
                                 result |= -((uint64_t)1 << shift);
                         return result;
                 }
-                shift += 7;
         }
         underflow();
         return 0;
