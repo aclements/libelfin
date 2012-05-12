@@ -863,8 +863,16 @@ to_string(expr_result::type v);
 class rangelist
 {
 public:
-        rangelist(const std::shared_ptr<section> &sec,
-                  taddr base_addr);
+        /**
+         * \internal Construct a range list whose data begins at the
+         * given offset in sec.  cu_addr_size is the address size of
+         * the associated compilation unit.  cu_low_pc is the
+         * DW_AT::low_pc attribute of the compilation unit containing
+         * the referring DIE or 0 (this is used as the base address of
+         * the range list).
+         */
+        rangelist(const std::shared_ptr<section> &sec, section_offset off,
+                  unsigned cu_addr_size, taddr cu_low_pc);
 
         /**
          * Construct a range list from a sequence of {low, high}
@@ -872,8 +880,14 @@ public:
          */
         rangelist(const std::initializer_list<std::pair<taddr, taddr> > &ranges);
 
+        /**
+         * Construct an empty range list.
+         */
         rangelist() = default;
+
+        /** Copy constructor */
         rangelist(const rangelist &o) = default;
+        /** Move constructor */
         rangelist(rangelist &&o) = default;
 
         class entry;
@@ -887,13 +901,18 @@ public:
          * you need to store a range for more than one loop iteration,
          * you must copy it.
          */
-        iterator begin();
-        iterator end();
+        iterator begin() const;
+
+        /**
+         * Return an iterator to one past the last entry in this range
+         * list.
+         */
+        iterator end() const;
 
         /**
          * Return true if this range list contains the given address.
          */
-        bool contains(taddr addr);
+        bool contains(taddr addr) const;
 
 private:
         std::vector<taddr> synthetic;
@@ -912,7 +931,7 @@ public:
         /**
          * Return true if addr is within this entry's bounds.
          */
-        bool contains(taddr addr)
+        bool contains(taddr addr) const
         {
                 return low <= addr && addr < high;
         }
@@ -924,32 +943,58 @@ public:
 class rangelist::iterator
 {
 public:
+        /**
+         * \internal Construct an end iterator.
+         */
         iterator() : sec(nullptr), base_addr(0), pos(0) { }
+
+        /**
+         * \internal Construct an iterator that reads rangelist data
+         * from the beginning of the given section and starts with the
+         * given base address.
+         */
+        iterator(const std::shared_ptr<section> &sec, taddr base_addr);
+
+        /** Copy constructor */
         iterator(const iterator &o) = default;
+        /** Move constructor */
         iterator(iterator &&o) = default;
 
+        /**
+         * Return the current range list entry.  This entry is reused
+         * internally, so the caller should copy it if it needs to
+         * persist past the next increment.
+         */
         const rangelist::entry &operator*() const
         {
                 return entry;
         }
 
+        /** Dereference operator */
         const rangelist::entry *operator->() const
         {
                 return &entry;
         }
 
-        bool operator!=(const iterator &o) const
+        /** Equality operator */
+        bool operator==(const iterator &o) const
         {
-                return sec != o.sec || pos != o.pos;
+                return sec == o.sec && pos == o.pos;
         }
 
+        /** Inequality operator */
+        bool operator!=(const iterator &o) const
+        {
+                return !(*this == o);
+        }
+
+        /**
+         * Increment this iterator to point to the next range list
+         * entry.
+         */
         iterator &operator++();
 
 private:
-        iterator(const std::shared_ptr<section> &sec, taddr base_addr);
-
-        friend class rangelist;
-
         std::shared_ptr<section> sec;
         taddr base_addr;
         section_offset pos;

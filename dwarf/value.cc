@@ -148,11 +148,10 @@ value::as_rangelist() const
         // address entry, but we'll just assume 0 for the initial base
         // address.
         die cudie = cu->root();
-        taddr base_addr = cudie.has(DW_AT::low_pc) ? at_low_pc(cudie) : 0;
+        taddr cu_low_pc = cudie.has(DW_AT::low_pc) ? at_low_pc(cudie) : 0;
         auto sec = cu->get_dwarf().get_section(section_type::ranges);
         auto cusec = cu->data();
-        return rangelist(sec->slice(off, ~0, cusec->fmt, cusec->addr_size),
-                         base_addr);
+        return rangelist(sec, off, cusec->addr_size, cu_low_pc);
 }
 
 die

@@ -4,9 +4,10 @@ using namespace std;
 
 DWARFPP_BEGIN_NAMESPACE
 
-rangelist::rangelist(const std::shared_ptr<section> &sec,
-                     taddr base_addr)
-        : sec(sec), base_addr(base_addr)
+rangelist::rangelist(const std::shared_ptr<section> &sec, section_offset off,
+                     unsigned cu_addr_size, taddr cu_low_pc)
+        : sec(sec->slice(off, ~0, format::unknown, cu_addr_size)),
+          base_addr(cu_low_pc)
 {
 }
 
@@ -29,19 +30,21 @@ rangelist::rangelist(const initializer_list<pair<taddr, taddr> > &ranges)
 }
 
 rangelist::iterator
-rangelist::begin()
+rangelist::begin() const
 {
-        return iterator(sec, base_addr);
+        if (sec)
+                return iterator(sec, base_addr);
+        return end();
 }
 
 rangelist::iterator
-rangelist::end()
+rangelist::end() const
 {
         return iterator();
 }
 
 bool
-rangelist::contains(taddr addr)
+rangelist::contains(taddr addr) const
 {
         for (auto ent : *this)
                 if (ent.contains(addr))
