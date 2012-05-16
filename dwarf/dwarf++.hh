@@ -1055,9 +1055,6 @@ public:
 
         class iterator;
 
-        // XXX Provide access to file list for DW_AT::decl_file and
-        // DW_AT::call_file.
-
         /**
          * Return an iterator to the beginning of this line number
          * table.  If called on an invalid line table, this will
@@ -1078,6 +1075,13 @@ public:
          * Returns end() if there is no such entry.
          */
         iterator find_address(taddr addr) const;
+
+        /**
+         * Return the index'th file in the line table.  These indexes
+         * are typically used by declaration and call coordinates.  If
+         * index is out of range, throws out_of_range.
+         */
+        const file *get_file(unsigned index) const;
 
 private:
         friend class iterator;

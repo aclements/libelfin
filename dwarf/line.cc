@@ -42,8 +42,11 @@ struct line_table::impl
         // track of how far we've gotten so we don't add the same
         // entry twice.
         section_offset last_file_name_end;
+        // If an iterator has traversed the entire program, then we
+        // know we've gathered all file names.
+        bool file_names_complete;
 
-        impl() : last_file_name_end(0) {};
+        impl() : last_file_name_end(0), file_names_complete(false) {};
 
         bool read_file_entry(cursor *cur, bool in_header);
 };
@@ -172,6 +175,27 @@ line_table::find_address(taddr addr) const
         return prev;
 }
 
+const line_table::file *
+line_table::get_file(unsigned index) const
+{
+        if (index >= m->file_names.size()) {
+                // It could be declared in the line table program.
+                // This is unlikely, so we don't have to be
+                // super-efficient about this.  Just force our way
+                // through the whole line table program.
+                if (!m->file_names_complete) {
+                        for (auto &ent : *this)
+                                (void)ent;
+                }
+                if (index >= m->file_names.size())
+                        throw out_of_range
+                                ("file name index " + std::to_string(index) +
+                                 " exceeds file table size of " +
+                                 std::to_string(m->file_names.size()));
+        }
+        return &m->file_names[index];
+}
+
 bool
 line_table::impl::read_file_entry(cursor *cur, bool in_header)
 {
@@ -255,6 +279,10 @@ line_table::iterator::operator++()
         }
         if (stepped && !output)
                 throw format_error("unexpected end of line table");
+        if (stepped && cur.end()) {
+                // Record that all file names must be known now
+                table->m->file_names_complete = true;
+        }
         if (output) {
                 // Resolve file name of entry
                 if (entry.file_index < table->m->file_names.size())
