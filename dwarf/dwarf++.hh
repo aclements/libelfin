@@ -535,9 +535,23 @@ public:
                 string
         };
 
+        /**
+         * Construct a value with type `type::invalid`.
+         */
+        value() : cu(nullptr), typ(type::invalid) { }
+
         value(const value &o) = default;
         value(value &&o) = default;
         value &operator=(const value &o) = default;
+
+        /**
+         * Return true if this object represents a valid value.
+         * Default constructed line tables are not valid.
+         */
+        bool valid() const
+        {
+                return typ != type::invalid;
+        }
 
         /**
          * Return this value's byte offset within its compilation
