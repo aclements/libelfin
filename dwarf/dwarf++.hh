@@ -372,7 +372,20 @@ public:
          * better to use the type-safe attribute getters (the global
          * functions beginning with at_*) when possible.
          */
-        const value operator[](DW_AT attr) const;
+        value operator[](DW_AT attr) const;
+
+        /**
+         * Return the value of attr after resolving specification and
+         * abstract origin references.  If the attribute cannot be
+         * resolved, returns an invalid value.  Declaration DIEs can
+         * "complete" a previous non-defining declaration DIE and
+         * similarly inherit the non-defining declaration's attributes
+         * (DWARF4 section 2.13) Likewise, any DIE that is a child of
+         * a concrete inlined instance can specify another DIE as its
+         * "abstract origin" and the original DIE will inherit the
+         * attributes of its abstract origin (DWARF4 section 3.3.8.2).
+         */
+        value resolve(DW_AT attr) const;
 
         class iterator;
 

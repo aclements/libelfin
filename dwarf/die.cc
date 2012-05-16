@@ -61,7 +61,7 @@ die::has(DW_AT attr) const
         return false;
 }
 
-const value
+value
 die::operator[](DW_AT attr) const
 {
         // XXX We can pre-compute almost all of this work in the
@@ -75,6 +75,42 @@ die::operator[](DW_AT attr) const
                 }
         }
         throw out_of_range("DIE does not have attribute " + to_string(attr));
+}
+
+value
+die::resolve(DW_AT attr) const
+{
+        // DWARF4 section 2.13, DWARF4 section 3.3.8
+
+        // DWARF4 is unclear about what to do when there's both a
+        // DW_AT::specification and a DW_AT::abstract_origin.
+        // Conceptually, though, a concrete inlined instance cannot
+        // itself complete an external function that wasn't first
+        // completed by its abstract instance, so we first try to
+        // resolve abstract_origin, then we resolve specification.
+
+        // XXX This traverses the abbrevs at least twice and
+        // potentially several more times
+
+        if (has(attr))
+                return (*this)[attr];
+
+        if (has(DW_AT::abstract_origin)) {
+                die ao = (*this)[DW_AT::abstract_origin].as_reference();
+                if (ao.has(attr))
+                        return ao[attr];
+                if (ao.has(DW_AT::specification)) {
+                        die s = ao[DW_AT::specification].as_reference();
+                        if (s.has(attr))
+                                return s[attr];
+                }
+        } else if (has(DW_AT::specification)) {
+                die s = (*this)[DW_AT::specification].as_reference();
+                if (s.has(attr))
+                        return s[attr];
+        }
+
+        return value();
 }
 
 die::iterator
