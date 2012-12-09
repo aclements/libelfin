@@ -94,6 +94,8 @@ public:
         dwarf(dwarf&&) = default;
         ~dwarf();
 
+        dwarf& operator=(const dwarf &o) = default;
+
         /**
          * Return true if this object represents a DWARF file.
          * Default constructed dwarf objects are not valid.
@@ -184,6 +186,8 @@ public:
         die() : abbrev(nullptr) { }
         die(const die &o) = default;
         die(die &&o) = default;
+
+        die& operator=(const die &o) = default;
 
         /**
          * Return true if this object represents a DIE in a DWARF
@@ -858,6 +862,8 @@ public:
         die_str_map() = default;
         die_str_map(const die_str_map &o) = default;
         die_str_map(die_str_map &&o) = default;
+
+        die_str_map& operator=(const die_str_map &o) = default;
 
         /**
          * Construct a string map for the type names of parent's

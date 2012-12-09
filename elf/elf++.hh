@@ -58,6 +58,8 @@ public:
         elf(const elf &o) = default;
         elf(elf &&o) = default;
 
+        elf& operator=(const elf &o) = default;
+
         bool valid() const
         {
                 return !!m;

@@ -166,7 +166,7 @@ public:
         void push_back(T&& x)
         {
                 reserve(size() + 1);
-                new (end) T(move(x));
+                new (end) T(std::move(x));
                 end++;
         }
 
