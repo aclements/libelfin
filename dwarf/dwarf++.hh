@@ -118,6 +118,7 @@ public:
         ~dwarf();
 
         dwarf& operator=(const dwarf &o) = default;
+        dwarf& operator=(dwarf &&o) = default;
 
         bool operator==(const dwarf &o) const
         {
@@ -259,6 +260,9 @@ public:
         compilation_unit(const compilation_unit &o) = default;
         compilation_unit(compilation_unit &&o) = default;
 
+        compilation_unit& operator=(const compilation_unit &o) = default;
+        compilation_unit& operator=(compilation_unit &&o) = default;
+
         /**
          * \internal Construct a compilation unit whose header begins
          * offset bytes into the .debug_info section of file.
@@ -283,6 +287,9 @@ public:
         type_unit() = default;
         type_unit(const type_unit &o) = default;
         type_unit(type_unit &&o) = default;
+
+        type_unit &operator=(const type_unit &o) = default;
+        type_unit &operator=(type_unit &&o) = default;
 
         /**
          * \internal Construct a type unit whose header begins offset
@@ -332,6 +339,7 @@ public:
         die(die &&o) = default;
 
         die& operator=(const die &o) = default;
+        die& operator=(die &&o) = default;
 
         /**
          * Return true if this object represents a DIE in a DWARF
@@ -446,6 +454,9 @@ public:
         iterator(const iterator &o) = default;
         iterator(iterator &&o) = default;
 
+        iterator& operator=(const iterator &o) = default;
+        iterator& operator=(iterator &&o) = default;
+
         const die &operator*() const
         {
                 return d;
@@ -555,7 +566,9 @@ public:
 
         value(const value &o) = default;
         value(value &&o) = default;
-        value &operator=(const value &o) = default;
+
+        value& operator=(const value &o) = default;
+        value& operator=(value &&o) = default;
 
         /**
          * Return true if this object represents a valid value.
@@ -917,6 +930,9 @@ public:
         /** Move constructor */
         rangelist(rangelist &&o) = default;
 
+        rangelist& operator=(const rangelist &o) = default;
+        rangelist& operator=(rangelist &&o) = default;
+
         class entry;
         typedef entry value_type;
 
@@ -986,6 +1002,9 @@ public:
         iterator(const iterator &o) = default;
         /** Move constructor */
         iterator(iterator &&o) = default;
+
+        iterator& operator=(const iterator &o) = default;
+        iterator& operator=(iterator &&o) = default;
 
         /**
          * Return the current range list entry.  This entry is reused
@@ -1066,6 +1085,9 @@ public:
         line_table(const line_table &o) = default;
         /** Move constructor */
         line_table(line_table &&o) = default;
+
+        line_table &operator=(const line_table &o) = default;
+        line_table &operator=(line_table &&o) = default;
 
         /**
          * Return true if this object represents an initialized line
@@ -1263,6 +1285,9 @@ public:
         /** Move constructor */
         iterator(iterator &&o) = default;
 
+        iterator &operator=(const iterator &o) = default;
+        iterator &operator=(iterator &&o) = default;
+
         /**
          * Return the current line table entry.  This entry is reused
          * internally, so the caller should copy it if it needs to
@@ -1418,6 +1443,7 @@ public:
         die_str_map(die_str_map &&o) = default;
 
         die_str_map& operator=(const die_str_map &o) = default;
+        die_str_map& operator=(die_str_map &&o) = default;
 
         /**
          * Construct a string map for the type names of parent's
