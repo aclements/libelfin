@@ -1477,6 +1477,96 @@ private:
 };
 
 //////////////////////////////////////////////////////////////////
+// Semantic representations
+//
+
+/**
+ * The declaration or call coordinates of a declaration or inline
+ * instance.
+ */
+class coordinates
+{
+public:
+        /**
+         * The type of coordinates to represent.
+         */
+        enum class type {
+                decl, call
+        };
+
+        /**
+         * Construct the declaration or call coordinates for the given
+         * DIE.
+         */
+        coordinates(const die &die, type typ = type::decl) : d(die), t(typ) {}
+
+        /**
+         * Return the source file that this declaration or call
+         * appeared in, or nullptr if no source file has been
+         * specified.
+         */
+        const line_table::file *get_file() const;
+
+        /**
+         * Return the 1-based source line number of the first
+         * character of this declaration or call, or 0 if no source
+         * line has been specified.
+         */
+        unsigned get_line() const;
+
+        /**
+         * Return the 1-based source column number of the first
+         * character of this declaration or call, or 0 if no source
+         * column has been specified.
+         */
+        unsigned get_column() const;
+
+        /**
+         * Return a descriptive string of the form
+         * "filename[:line[:column]]".
+         */
+        std::string get_description() const;
+
+private:
+        const die &d;
+        const type t;
+};
+
+/**
+ * A subprogram, inlined subroutine, or other entry point.
+ */
+class subroutine
+{
+public:
+        /**
+         * Construct a subroutine based on the attributes of `die`.
+         */
+        subroutine(const die &die) : d(die) {}
+
+        /**
+         * Return the declaration coordinates of this subroutine.
+         */
+        coordinates get_decl() const;
+
+        /**
+         * Return the call coordinates for concrete inlined
+         * subroutines.  For any other type of subroutine, all of the
+         * returned coordinate parts will be "unknown."
+         */
+        coordinates get_call() const;
+
+        /**
+         * Return this subroutine's name, or "" if it has none.
+         */
+        std::string get_name() const;
+
+private:
+        // XXX This requires the something keep die live, which means,
+        // e.g., we can't easily put subroutines in collections.
+        const die &d;
+};
+
+//////////////////////////////////////////////////////////////////
 // ELF support
 //
 
