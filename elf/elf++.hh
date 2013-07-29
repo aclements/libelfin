@@ -4,6 +4,7 @@
 #include "common.hh"
 #include "data.hh"
 
+#include <cstddef>
 #include <memory>
 #include <stdexcept>
 #include <vector>
@@ -14,6 +15,7 @@ class elf;
 class loader;
 class section;
 class strtab;
+class symtab;
 
 // XXX Audit for binary compatibility
 
@@ -198,10 +200,17 @@ public:
 
         /**
          * Return this section as a strtab.  Throws
-         * section_type_mismatch is this section is not a string
+         * section_type_mismatch if this section is not a string
          * table.
          */
         strtab as_strtab() const;
+
+        /**
+         * Return this section as a symtab.  Throws
+         * section_type_mismatch if this section is not a symbol
+         * table.
+         */
+        symtab as_symtab() const;
 
 private:
         struct impl;
@@ -237,11 +246,133 @@ public:
          * directly into the loaded section, though this still
          * verifies that the returned string is NUL-terminated.
          */
-        const char *get(Elf64::Off offset, size_t *len_out);
+        const char *get(Elf64::Off offset, size_t *len_out) const;
         /**
          * Return the string at the given offset in this string table.
          */
-        std::string get(Elf64::Off offset);
+        std::string get(Elf64::Off offset) const;
+
+private:
+        struct impl;
+        std::shared_ptr<impl> m;
+};
+
+/**
+ * A symbol from a symbol table.
+ */
+class sym
+{
+        const strtab strs;
+        Sym<> data;
+
+public:
+        sym(elf f, const void *data, strtab strs);
+
+        /**
+         * Return this symbol's raw data.
+         */
+        const Sym<> &get_data() const
+        {
+                return data;
+        }
+
+        /**
+         * Return this symbol's name.
+         *
+         * This returns a pointer into the string table and, as such,
+         * is very efficient.  If len_out is non-nullptr, *len_out
+         * will be set the length of the returned string.
+         */
+        const char *get_name(size_t *len_out) const;
+
+        /**
+         * Return this symbol's name as a string.
+         */
+        std::string get_name() const;
+};
+
+/**
+ * A symbol table.
+ *
+ * This class is internally reference counted and efficiently
+ * copyable.
+ */
+class symtab
+{
+public:
+        /**
+         * Construct a symtab that is initially not valid.  Calling
+         * methods other than operator= and valid on this results in
+         * undefined behavior.
+         */
+        symtab() = default;
+        symtab(elf f, const void *data, size_t size, strtab strs);
+
+        bool valid() const
+        {
+                return !!m;
+        }
+
+        class iterator
+        {
+                const elf f;
+                const strtab strs;
+                const char *pos;
+                size_t stride;
+
+                iterator(const symtab &tab, const char *pos);
+                friend class symtab;
+
+        public:
+                sym operator*() const
+                {
+                        return sym(f, pos, strs);
+                }
+
+                iterator& operator++()
+                {
+                        return *this += 1;
+                }
+
+                iterator operator++(int)
+                {
+                        iterator cur(*this);
+                        *this += 1;
+                        return cur;
+                }
+
+                iterator& operator+=(std::ptrdiff_t x)
+                {
+                        pos += x * stride;
+                        return *this;
+                }
+
+                iterator& operator-=(std::ptrdiff_t x)
+                {
+                        pos -= x * stride;
+                        return *this;
+                }
+
+                bool operator==(iterator &o) const
+                {
+                        return pos == o.pos;
+                }
+
+                bool operator!=(iterator &o) const
+                {
+                        return pos != o.pos;
+                }
+        };
+
+        /**
+         * Return an iterator to the first symbol.
+         */
+        iterator begin() const;
+
+        /**
+         * Return an iterator just past the last symbol.
+         */
+        iterator end() const;
 
 private:
         struct impl;

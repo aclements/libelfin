@@ -203,6 +203,15 @@ section::as_strtab() const
         return strtab(m->f, data(), size());
 }
 
+symtab
+section::as_symtab() const
+{
+        if (m->hdr.type != sht::symtab)
+                throw section_type_mismatch("cannot use section as symtab");
+        return symtab(m->f, data(), size(),
+                      m->f.get_section(get_hdr().link).as_strtab());
+}
+
 //////////////////////////////////////////////////////////////////
 // class strtab
 //
@@ -222,7 +231,7 @@ strtab::strtab(elf f, const void *data, size_t size)
 }
 
 const char *
-strtab::get(Elf64::Off offset, size_t *len_out)
+strtab::get(Elf64::Off offset, size_t *len_out) const
 {
         const char *start = m->data + offset;
 
@@ -242,9 +251,72 @@ strtab::get(Elf64::Off offset, size_t *len_out)
 }
 
 std::string
-strtab::get(Elf64::Off offset)
+strtab::get(Elf64::Off offset) const
 {
         return get(offset, nullptr);
+}
+
+//////////////////////////////////////////////////////////////////
+// class sym
+//
+
+sym::sym(elf f, const void *data, strtab strs)
+        : strs(strs)
+{
+        canon_hdr(&this->data, data, f.get_hdr().ei_class, f.get_hdr().ei_data);
+}
+
+const char *
+sym::get_name(size_t *len_out) const
+{
+        return strs.get(get_data().name, len_out);
+}
+
+std::string
+sym::get_name() const
+{
+        return strs.get(get_data().name);
+}
+
+//////////////////////////////////////////////////////////////////
+// class symtab
+//
+
+struct symtab::impl
+{
+        impl(const elf &f, const char *data, const char *end, strtab strs)
+                : f(f), data(data), end(end), strs(strs) { }
+
+        const elf f;
+        const char *data, *end;
+        const strtab strs;
+};
+
+symtab::symtab(elf f, const void *data, size_t size, strtab strs)
+        : m(make_shared<impl>(f, (const char*)data, (const char *)data + size,
+                              strs))
+{
+}
+
+symtab::iterator::iterator(const symtab &tab, const char *pos)
+        : f(tab.m->f), strs(tab.m->strs), pos(pos)
+{
+        if (f.get_hdr().ei_class == elfclass::_32)
+                stride = sizeof(Sym<Elf32>);
+        else
+                stride = sizeof(Sym<Elf64>);
+}
+
+symtab::iterator
+symtab::begin() const
+{
+        return iterator(*this, m->data);
+}
+
+symtab::iterator
+symtab::end() const
+{
+        return iterator(*this, m->end);
 }
 
 ELFPP_END_NAMESPACE

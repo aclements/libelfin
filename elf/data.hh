@@ -326,6 +326,128 @@ struct Phdr<Elf64, Order>
         }
 };
 
+// Symbol bindings (ELF32 figure 1-16, ELF64 table 14)
+enum class stb : unsigned char
+{
+        local  = 0,             // Not visible outside the object file
+        global = 1,             // Global symbol
+        weak   = 2,             // Global scope, but with lower
+                                // precedence than global symbols
+        loos   = 10,            // Environment-specific use
+        hios   = 12,
+        loproc = 13,            // Processor-specific use
+        hiproc = 15,
+};
+
+// Symbol types (ELF32 figure 1-17, ELF64 table 15)
+enum class stt : unsigned char
+{
+        notype  = 0,            // No type (e.g., absolute symbol)
+        object  = 1,            // Data object
+        func    = 2,            // Function entry point
+        section = 3,            // Symbol is associated with a section
+        file    = 4,            // Source file associated with the
+                                // object file
+        loos    = 10,           // Environment-specific use
+        hios    = 12,
+        loproc  = 13,           // Processor-specific use
+        hiproc  = 15,
+};
+
+// Symbol table (ELF32 figure 1-15, ELF64 figure 4)
+template<typename E = Elf64, byte_order Order = byte_order::native>
+struct Sym;
+
+template<byte_order Order>
+struct Sym<Elf32, Order>
+{
+        typedef Elf32 types;
+        static const byte_order order = Order;
+
+        Elf32::Word   name;  // Symbol name (strtab offset)
+        Elf32::Addr   value; // Symbol value (address)
+        Elf32::Word   size;  // Size of object
+        unsigned char info;  // Type and binding attributes
+        unsigned char other; // Reserved
+        Elf32::Half   shnxd; // Section table index
+
+        template<typename E2>
+        void from(const E2 &o)
+        {
+                name  = swizzle(o.name, o.order, order);
+                value = swizzle(o.value, o.order, order);
+                size  = swizzle(o.size, o.order, order);
+                info  = o.info;
+                other = o.other;
+                shnxd = swizzle(o.shnxd, o.order, order);
+        }
+
+        stb binding() const
+        {
+                return (stb)(info >> 4);
+        }
+
+        void set_binding(stb v)
+        {
+                info = (info & 0x0F) | ((unsigned char)v << 4);
+        }
+
+        stt type() const
+        {
+                return (stt)(info & 0xF);
+        }
+
+        void set_type(stt v)
+        {
+                info = (info & 0xF0) | (unsigned char)v;
+        }
+};
+
+template<byte_order Order>
+struct Sym<Elf64, Order>
+{
+        typedef Elf64 types;
+        static const byte_order order = Order;
+
+        Elf64::Word   name;  // Symbol name (strtab offset)
+        unsigned char info;  // Type and binding attributes
+        unsigned char other; // Reserved
+        Elf64::Half   shnxd; // Section table index
+        Elf64::Addr   value; // Symbol value (address)
+        Elf64::Xword  size;  // Size of object
+
+        template<typename E2>
+        void from(const E2 &o)
+        {
+                name  = swizzle(o.name, o.order, order);
+                value = swizzle(o.value, o.order, order);
+                size  = swizzle(o.size, o.order, order);
+                info  = o.info;
+                other = o.other;
+                shnxd = swizzle(o.shnxd, o.order, order);
+        }
+
+        stb binding() const
+        {
+                return (stb)(info >> 4);
+        }
+
+        void set_binding(stb v) const
+        {
+                info = (info & 0xF) | ((unsigned char)v << 4);
+        }
+
+        stt type() const
+        {
+                return (stt)(info & 0xF);
+        }
+
+        void set_type(stt v)
+        {
+                info = (info & 0xF0) | (unsigned char)v;
+        }
+};
+
 ELFPP_END_NAMESPACE
 
 #endif
