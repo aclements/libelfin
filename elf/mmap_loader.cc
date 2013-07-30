@@ -40,7 +40,7 @@ public:
 
         const void *load(off_t offset, size_t size)
         {
-                if (offset + size >= lim)
+                if (offset + size > lim)
                         throw range_error("offset exceeds file size");
                 return (const char*)base + offset;
         }
