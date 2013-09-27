@@ -1,0 +1,4 @@
+*.o
+dump-lines
+dump-tree
+find-pc
