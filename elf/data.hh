@@ -5,6 +5,7 @@
 
 #include <cstdint>
 #include <cstring>
+#include <string>
 
 ELFPP_BEGIN_NAMESPACE
 
@@ -14,6 +15,9 @@ enum class elfclass : unsigned char
         _32 = 1,                // 32-bit objects
         _64 = 2,                // 64-bit objects
 };
+
+std::string
+to_string(elfclass v);
 
 // Common basic data types
 struct ElfTypes
@@ -70,6 +74,9 @@ enum class elfdata : unsigned char
         msb = 2,
 };
 
+std::string
+to_string(elfdata v);
+
 // Operating system and ABI identifiers (ELF64 table 5)
 enum class elfosabi : unsigned char
 {
@@ -77,6 +84,9 @@ enum class elfosabi : unsigned char
         hpux = 1,
         standalone = 255,
 };
+
+std::string
+to_string(elfosabi v);
 
 // Object file types (ELF64 table 6)
 enum class et : ElfTypes::Half
@@ -91,6 +101,9 @@ enum class et : ElfTypes::Half
         loproc = 0xff00,        // Processor-specific use
         hiproc = 0xffff,
 };
+
+std::string
+to_string(et v);
 
 // ELF header (ELF32 figure 1-3, ELF64 figure 2)
 template<typename E = Elf64, byte_order Order = byte_order::native>
@@ -171,6 +184,9 @@ enum class sht : ElfTypes::Word
         hiproc   = 0x7FFFFFFF,
 };
 
+std::string
+to_string(sht v);
+
 // Section attributes (ELF64 table 9).  Note: This is an Elf32_Word in
 // ELF32.  We use the larger ELF64 type for the canonical
 // representation and switch it out for a plain Elf32_Word in the
@@ -183,6 +199,9 @@ enum class shf : Elf64::Xword
         maskos    = 0x0F000000, // Environment-specific use
         maskproc  = 0xF0000000, // Processor-specific use
 };
+
+std::string
+to_string(shf v);
 
 static inline constexpr shf operator&(shf a, shf b)
 {
@@ -272,6 +291,9 @@ enum class pt : ElfTypes::Word
         hiproc  = 0x7FFFFFFF,
 };
 
+std::string
+to_string(pt v);
+
 // Segment attributes
 enum class pf : ElfTypes::Word
 {
@@ -281,6 +303,9 @@ enum class pf : ElfTypes::Word
         maskos   = 0x00FF0000,  // Environment-specific use
         maskproc = 0xFF000000,  // Processor-specific use
 };
+
+std::string
+to_string(pf v);
 
 static inline constexpr pf operator&(pf a, pf b)
 {
@@ -395,6 +420,9 @@ enum class stb : unsigned char
         hiproc = 15,
 };
 
+std::string
+to_string(stb v);
+
 // Symbol types (ELF32 figure 1-17, ELF64 table 15)
 enum class stt : unsigned char
 {
@@ -409,6 +437,9 @@ enum class stt : unsigned char
         loproc  = 13,           // Processor-specific use
         hiproc  = 15,
 };
+
+std::string
+to_string(stt v);
 
 // Symbol table (ELF32 figure 1-15, ELF64 figure 4)
 template<typename E = Elf64, byte_order Order = byte_order::native>

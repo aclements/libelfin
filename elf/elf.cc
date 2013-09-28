@@ -236,7 +236,7 @@ strtab::get(Elf64::Off offset, size_t *len_out) const
         const char *start = m->data + offset;
 
         if (start >= m->end)
-                throw range_error("string offset " + to_string(offset) + " exceeds section size");
+                throw range_error("string offset " + std::to_string(offset) + " exceeds section size");
 
         // Find the null terminator
         const char *p = start;

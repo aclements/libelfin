@@ -19,8 +19,6 @@ class symtab;
 
 // XXX Audit for binary compatibility
 
-// XXX Provide to_string functions
-
 // XXX Segments, other section types
 
 /**

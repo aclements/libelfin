@@ -58,7 +58,25 @@ def do_top_level(toks, ns=[]):
             arg = toks.pop(0)
             assert toks[0] == ")"
 
-            make_to_string(typ, arg)
+            if typ in options.mask:
+                make_to_string_mask(typ, arg)
+            else:
+                make_to_string(typ, arg)
+
+def fmt_value(typ, key):
+    if options.no_type:
+        val = key
+    else:
+        val = "%s%s%s" % (typ, options.separator, key)
+    if options.strip_underscore:
+        val = val.strip("_")
+    return val
+
+def expr_remainder(typ, arg):
+    if options.hex:
+        return "\"(%s)0x\" + to_hex((int)%s)" % (typ, arg)
+    else:
+        return "\"(%s)\" + std::to_string((int)%s)" % (typ, arg)
 
 def make_to_string(typ, arg):
     print "std::string"
@@ -69,15 +87,27 @@ def make_to_string(typ, arg):
         if key in options.exclude:
             print "        case %s::%s: break;" % (typ, key)
             continue
-        str = "%s%s%s" % (typ, options.separator, key)
-        if options.strip_underscore:
-            str = str.rstrip("_")
-        print "        case %s::%s: return \"%s\";" % (typ, key, str)
+        print "        case %s::%s: return \"%s\";" % \
+            (typ, key, fmt_value(typ, key))
     print "        }"
-    if options.hex:
-        print "        return \"(%s)0x\" + to_hex((int)%s);" % (typ, arg)
-    else:
-        print "        return \"(%s)\" + std::to_string((int)%s);" % (typ, arg)
+    print "        return %s;" % expr_remainder(typ, arg)
+    print "}"
+    print
+
+def make_to_string_mask(typ, arg):
+    print "std::string"
+    print "to_string(%s %s)" % (typ, arg)
+    print "{"
+    print "        std::string res;"
+    for key in enums[typ]:
+        if key in options.exclude:
+            continue
+        print "        if ((%s & %s::%s) == %s::%s) { res += \"%s|\"; %s &= ~%s::%s; }" % \
+            (arg, typ, key, typ, key, fmt_value(typ, key), arg, typ, key)
+    print "        if (res.empty() || %s != (%s)0) res += %s;" % \
+        (arg, typ, expr_remainder(typ, arg))
+    print "        else res.pop_back();"
+    print "        return res;"
     print "}"
     print
 
@@ -111,12 +141,17 @@ parser = OptionParser()
 parser.add_option("-x", "--exclude", dest="exclude", action="append",
                   help="exclude FIELD", metavar="FIELD", default=[])
 parser.add_option("-u", "--strip-underscore", dest="strip_underscore",
-                  action="store_true", help="strip trailing underscores")
+                  action="store_true",
+                  help="strip leading and trailing underscores")
 parser.add_option("-s", "--separator", dest="separator",
                   help="use SEP between type and field", metavar="SEP",
                   default="::")
 parser.add_option("--hex", dest="hex", action="store_true",
                   help="return unknown values in hex", default=False)
+parser.add_option("--no-type", dest="no_type", action="store_true",
+                  help="omit type")
+parser.add_option("--mask", dest="mask", action="append",
+                  help="treat TYPE as a bit-mask", metavar="TYPE", default=[])
 (options, args) = parser.parse_args()
 if args:
     parser.error("expected 0 arguments")
