@@ -53,6 +53,9 @@ struct cursor;
 
 // XXX Indicate DWARF4 in all spec references
 
+// XXX Big missing support: .debug_aranges, .debug_frame, loclists,
+// macros
+
 //////////////////////////////////////////////////////////////////
 // DWARF files
 //
