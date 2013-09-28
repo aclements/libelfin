@@ -184,14 +184,42 @@ enum class shf : Elf64::Xword
         maskproc  = 0xF0000000, // Processor-specific use
 };
 
-static inline shf operator&(shf a, shf b)
+static inline constexpr shf operator&(shf a, shf b)
 {
         return (shf)((std::uint64_t)a & (std::uint64_t)b);
 }
 
-static inline shf operator|(shf a, shf b)
+static inline constexpr shf operator|(shf a, shf b)
 {
         return (shf)((std::uint64_t)a | (std::uint64_t)b);
+}
+
+static inline constexpr shf operator^(shf a, shf b)
+{
+        return (shf)((std::uint64_t)a ^ (std::uint64_t)b);
+}
+
+static inline constexpr shf operator~(shf a)
+{
+        return (shf)~((std::uint64_t)a);
+}
+
+static inline shf& operator&=(shf &a, shf b)
+{
+        a = a & b;
+        return a;
+}
+
+static inline shf& operator|=(shf &a, shf b)
+{
+        a = a | b;
+        return a;
+}
+
+static inline shf& operator^=(shf &a, shf b)
+{
+        a = a ^ b;
+        return a;
 }
 
 // Section header (ELF32 figure 1-8, ELF64 figure 3)
@@ -254,14 +282,42 @@ enum class pf : ElfTypes::Word
         maskproc = 0xFF000000,  // Processor-specific use
 };
 
-static inline pf operator&(pf a, pf b)
+static inline constexpr pf operator&(pf a, pf b)
 {
         return (pf)((std::uint64_t)a & (std::uint64_t)b);
 }
 
-static inline pf operator|(pf a, pf b)
+static inline constexpr pf operator|(pf a, pf b)
 {
         return (pf)((std::uint64_t)a | (std::uint64_t)b);
+}
+
+static inline constexpr pf operator^(pf a, pf b)
+{
+        return (pf)((std::uint64_t)a ^ (std::uint64_t)b);
+}
+
+static inline constexpr pf operator~(pf a)
+{
+        return (pf)~((std::uint64_t)a);
+}
+
+static inline pf& operator&=(pf &a, pf b)
+{
+        a = a & b;
+        return a;
+}
+
+static inline pf& operator|=(pf &a, pf b)
+{
+        a = a | b;
+        return a;
+}
+
+static inline pf& operator^=(pf &a, pf b)
+{
+        a = a ^ b;
+        return a;
 }
 
 // Program header (ELF32 figure 2-1, ELF64 figure 6)
