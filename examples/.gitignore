@@ -1,4 +1,6 @@
 *.o
+dump-sections
+dump-syms
 dump-lines
 dump-tree
 find-pc

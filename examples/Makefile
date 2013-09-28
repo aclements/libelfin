@@ -4,7 +4,17 @@ CPPFLAGS+=-I../dwarf -I../elf
 
 CLEAN :=
 
-all: dump-tree dump-lines find-pc
+all: dump-sections dump-syms dump-tree dump-lines find-pc
+
+dump-sections: dump-sections.o ../elf/libelf++.a
+	$(LINK.cc) $^ $(LOADLIBES) $(LDLIBS) -o $@
+dump-sections.o: ../elf/elf++.hh
+CLEAN += dump-sections dump-sections.o
+
+dump-syms: dump-syms.o ../elf/libelf++.a
+	$(LINK.cc) $^ $(LOADLIBES) $(LDLIBS) -o $@
+dump-syms.o: ../elf/elf++.hh
+CLEAN += dump-syms dump-syms.o
 
 dump-tree: dump-tree.o ../dwarf/libdwarf++.a ../elf/libelf++.a
 	$(LINK.cc) $^ $(LOADLIBES) $(LDLIBS) -o $@
