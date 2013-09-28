@@ -137,6 +137,18 @@ elf::get_section(unsigned index) const
 // class section
 //
 
+std::string
+enums::to_string(shn v)
+{
+        if (v == shn::undef)
+                return "undef";
+        if (v == shn::abs)
+                return "abs";
+        if (v == shn::common)
+                return "common";
+        return std::to_string(v);
+}
+
 struct section::impl
 {
         impl(const elf &f)

@@ -162,6 +162,31 @@ struct Ehdr
         }
 };
 
+// Special section indices (ELF32 figure 1-7, ELF64 table 7)
+//
+// This is an integer with a few special values, so this is a regular
+// enum, rather than a type-safe enum.  However, this is declared in a
+// namespace and then used to avoid polluting the elf:: namespace.
+namespace enums {
+enum shn : ElfTypes::Half
+{
+        undef = 0,              // Undefined or meaningless
+
+        loproc = 0xff00,        // Processor-specific use
+        hiproc = 0xff1f,
+        loos   = 0xff20,        // Environment-specific use
+        hios   = 0xff3f,
+
+        abs    = 0xfff1,        // Reference is an absolute value
+        common = 0xfff2,        // Symbol declared as a common block
+};
+
+std::string
+to_string(shn v);
+}
+
+using enums::shn;
+
 // Section types (ELF64 table 8)
 enum class sht : ElfTypes::Word
 {
@@ -254,7 +279,7 @@ struct Shdr
         typename E::Addr           addr; // Virtual address in memory
         typename E::Off            offset; // Offset in file
         typename E::Word32_Xword64 size; // Size of section
-        typename E::Word           link; // Link to other section
+        shn                        link; // Link to other section
         typename E::Word           info; // Miscellaneous information
         typename E::Word32_Xword64 addralign; // Address alignment boundary
         typename E::Word32_Xword64 entsize; // Size of entries, if section has table
@@ -456,7 +481,7 @@ struct Sym<Elf32, Order>
         Elf32::Word   size;  // Size of object
         unsigned char info;  // Type and binding attributes
         unsigned char other; // Reserved
-        Elf32::Half   shnxd; // Section table index
+        shn           shnxd; // Section table index
 
         template<typename E2>
         void from(const E2 &o)
@@ -499,7 +524,7 @@ struct Sym<Elf64, Order>
         Elf64::Word   name;  // Symbol name (strtab offset)
         unsigned char info;  // Type and binding attributes
         unsigned char other; // Reserved
-        Elf64::Half   shnxd; // Section table index
+        shn           shnxd; // Section table index
         Elf64::Addr   value; // Symbol value (address)
         Elf64::Xword  size;  // Size of object
 
