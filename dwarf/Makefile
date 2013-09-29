@@ -1,6 +1,8 @@
 CXXFLAGS+=-g -O2 -Werror
 override CXXFLAGS+=-std=c++0x -Wall
 
+all: libdwarf++.a libdwarf++.pc
+
 SRCS := dwarf.cc cursor.cc die.cc value.cc abbrev.cc \
 	expr.cc rangelist.cc line.cc attrs.cc \
 	die_str_map.cc elf.cc to_string.cc
@@ -25,6 +27,19 @@ to_string.cc: ../elf/enum-print.py dwarf++.hh data.hh Makefile
 	python ../elf/enum-print.py -s _ -u --hex -x hi_user -x lo_user < data.hh >> to_string.cc
 	@echo 'DWARFPP_END_NAMESPACE' >> to_string.cc
 CLEAN += to_string.cc
+
+libdwarf++.pc: always
+	@(VER=$$(git describe --match 'v*' | sed -e s/^v//); \
+	  echo "prefix=$$PWD"; \
+	  echo "Name: libdwarf++"; \
+	  echo "Description: C++11 DWARF library"; \
+	  echo "Version: $$VER"; \
+	  echo "Requires: libelf++ = $$VER"; \
+	  echo "Libs: -L\$${prefix} -ldwarf++"; \
+	  echo "Cflags: -I\$${prefix}") > $@
+CLEAN += libdwarf++.pc
+
+.PHONY: always
 
 clean:
 	rm -f $(CLEAN)

@@ -1,12 +1,6 @@
-all: elf/libelf++.a dwarf/libdwarf++.a
-
-elf/libelf++.a: always
-	$(MAKE) -C elf libelf++.a 
-
-dwarf/libdwarf++.a: always
-	$(MAKE) -C dwarf libdwarf++.a 
-
-.PHONY: always
+all:
+	$(MAKE) -C elf
+	$(MAKE) -C dwarf
 
 clean:
 	$(MAKE) -C elf clean

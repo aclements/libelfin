@@ -1,6 +1,8 @@
 CXXFLAGS+=-g -O2 -Werror
 override CXXFLAGS+=-std=c++0x -Wall
 
+all: libelf++.a libelf++.pc
+
 SRCS := elf.cc mmap_loader.cc to_string.cc
 HDRS := elf++.hh data.hh common.hh to_hex.hh
 CLEAN :=
@@ -24,6 +26,18 @@ to_string.cc: enum-print.py data.hh Makefile
 		-x loos -x hios -x loproc -x hiproc < data.hh >> to_string.cc
 	@echo 'ELFPP_END_NAMESPACE' >> to_string.cc
 CLEAN += to_string.cc
+
+libelf++.pc: always
+	@(VER=$$(git describe --match 'v*' | sed -e s/^v//); \
+	  echo "prefix=$$PWD"; \
+	  echo "Name: libelf++"; \
+	  echo "Description: C++11 ELF library"; \
+	  echo "Version: $$VER"; \
+	  echo "Libs: -L\$${prefix} -lelf++"; \
+	  echo "Cflags: -I\$${prefix}") > $@
+CLEAN += libelf++.pc
+
+.PHONY: always
 
 clean:
 	rm -f $(CLEAN)
