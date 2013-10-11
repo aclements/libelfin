@@ -1,4 +1,5 @@
 *.o
+.*.d
 dump-sections
 dump-syms
 dump-lines

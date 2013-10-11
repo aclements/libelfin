@@ -1,43 +1,38 @@
 CXXFLAGS+=-g -O2 -Werror
 override CXXFLAGS+=-std=c++0x -Wall
-CPPFLAGS+=-I../dwarf -I../elf
 
 CLEAN :=
 
 all: dump-sections dump-syms dump-tree dump-lines find-pc
 
-dump-sections: dump-sections.o ../elf/libelf++.a
+# Find libs
+export PKG_CONFIG_PATH+=:../elf:../dwarf
+CPPFLAGS+=$$(pkg-config --cflags libelf++ libdwarf++)
+LDLIBS+=$$(pkg-config --libs libelf++ libdwarf++)
+
+# Dependencies
+CPPFLAGS+=-MD -MP -MF .$@.d
+-include .*.d
+
+dump-sections: dump-sections.o
 	$(LINK.cc) $^ $(LOADLIBES) $(LDLIBS) -o $@
-dump-sections.o: ../elf/elf++.hh
 CLEAN += dump-sections dump-sections.o
 
-dump-syms: dump-syms.o ../elf/libelf++.a
+dump-syms: dump-syms.o
 	$(LINK.cc) $^ $(LOADLIBES) $(LDLIBS) -o $@
-dump-syms.o: ../elf/elf++.hh
 CLEAN += dump-syms dump-syms.o
 
-dump-tree: dump-tree.o ../dwarf/libdwarf++.a ../elf/libelf++.a
+dump-tree: dump-tree.o
 	$(LINK.cc) $^ $(LOADLIBES) $(LDLIBS) -o $@
-dump-tree.o: ../dwarf/dwarf++.hh ../elf/elf++.hh
 CLEAN += dump-tree dump-tree.o
 
-dump-lines: dump-lines.o ../dwarf/libdwarf++.a ../elf/libelf++.a
+dump-lines: dump-lines.o
 	$(LINK.cc) $^ $(LOADLIBES) $(LDLIBS) -o $@
-dump-lines.o: ../dwarf/dwarf++.hh ../elf/elf++.hh
 CLEAN += dump-lines dump-lines.o
 
-find-pc: find-pc.o ../dwarf/libdwarf++.a ../elf/libelf++.a
+find-pc: find-pc.o
 	$(LINK.cc) $^ $(LOADLIBES) $(LDLIBS) -o $@
-find-pc.o: ../dwarf/dwarf++.hh ../elf/elf++.hh
 CLEAN += find-pc find-pc.o
 
-../dwarf/libdwarf++.a: always
-	$(MAKE) -C ../dwarf libdwarf++.a 
-
-../elf/libelf++.a: always
-	$(MAKE) -C ../elf libelf++.a 
-
-.PHONY: always
-
 clean:
-	rm -f $(CLEAN)
+	rm -f $(CLEAN) .*.d
