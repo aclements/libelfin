@@ -41,6 +41,12 @@ CLEAN += libdwarf++.pc
 
 .PHONY: always
 
+install: libdwarf++.a libdwarf++.pc
+	install -d /usr/local/lib/pkgconfig
+	install -t /usr/local/lib libdwarf++.a
+	sed 's,^prefix=.*,prefix=/usr/local/lib,' libdwarf++.pc \
+		> /usr/local/lib/pkgconfig/libdwarf++.pc
+
 clean:
 	rm -f $(CLEAN)
 

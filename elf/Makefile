@@ -39,6 +39,12 @@ CLEAN += libelf++.pc
 
 .PHONY: always
 
+install: libelf++.a libelf++.pc
+	install -d /usr/local/lib/pkgconfig
+	install -t /usr/local/lib libelf++.a
+	sed 's,^prefix=.*,prefix=/usr/local/lib,' libelf++.pc \
+		> /usr/local/lib/pkgconfig/libelf++.pc
+
 clean:
 	rm -f $(CLEAN)
 
