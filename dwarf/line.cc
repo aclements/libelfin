@@ -30,7 +30,6 @@ struct line_table::impl
         sbyte line_base;
         ubyte line_range;
         ubyte opcode_base;
-        ubyte standard_opcodes;
         vector<ubyte> standard_opcode_lengths;
         vector<string> include_directories;
         vector<file> file_names;
@@ -92,7 +91,7 @@ line_table::line_table(const shared_ptr<section> &sec, section_offset offset,
         if (m->line_range == 0)
                 throw format_error("line_range cannot be 0 in line number table");
         m->opcode_base = cur.fixed<ubyte>();
-        m->standard_opcodes = min(version == 2 ? 10 : 13, (int)m->opcode_base);
+        
         static_assert(sizeof(opcode_lengths) / sizeof(opcode_lengths[0]) == 13,
                       "opcode_lengths table has wrong length");
 
@@ -101,7 +100,7 @@ line_table::line_table(const shared_ptr<section> &sec, section_offset offset,
         m->standard_opcode_lengths[0] = 0;
         for (unsigned i = 1; i < m->opcode_base; i++) {
                 ubyte length = cur.fixed<ubyte>();
-                if (i < m->standard_opcodes && length != opcode_lengths[i])
+                if (length != opcode_lengths[i])
                         // The spec never says what to do if the
                         // opcode length of a standard opcode doesn't
                         // match the header.  Do the safe thing.
@@ -323,8 +322,16 @@ line_table::iterator::step(cursor *cur)
                 regs.discriminator = 0;
 
                 return true;
-        } else if (opcode && opcode < table->m->standard_opcodes) {
+        } else if (opcode != 0) {
                 // Standard opcode (DWARF4 sections 6.2.3 and 6.2.5.2)
+                //
+                // According to the standard, any opcode between the
+                // highest defined opcode for a given DWARF version
+                // and opcode_base should be treated as a
+                // vendor-specific opcode. However, the de facto
+                // standard seems to be to process these as standard
+                // opcodes even if they're from a later version of the
+                // standard than the line table header claims.
                 uint64_t uarg;
 #pragma GCC diagnostic push
 #pragma GCC diagnostic warning "-Wswitch-enum"
@@ -377,12 +384,14 @@ line_table::iterator::step(cursor *cur)
                         regs.isa = cur->uleb128();
                         break;
                 default:
+                        // XXX Vendor extensions
                         throw format_error("unknown line number opcode " +
                                            to_string((DW_LNS)opcode));
                 }
                 return ((DW_LNS)opcode == DW_LNS::copy);
-        } else if (opcode == 0) {
+        } else { // opcode == 0
                 // Extended opcode (DWARF4 sections 6.2.3 and 6.2.5.3)
+                assert(opcode == 0);
                 uint64_t length = cur->uleb128();
                 section_offset end = cur->get_section_offset() + length;
                 opcode = cur->fixed<ubyte>();
@@ -419,11 +428,6 @@ line_table::iterator::step(cursor *cur)
                         throw format_error("extended line number opcode exceeded its size");
                 cur += end - cur->get_section_offset();
                 return ((DW_LNE)opcode == DW_LNE::end_sequence);
-        } else {
-                // XXX Vendor extensions
-                throw runtime_error("vendor line number opcode " +
-                                    to_string((DW_LNS)opcode) +
-                                    " not implemented");
         }
 }
 
