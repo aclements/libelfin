@@ -1077,7 +1077,7 @@ public:
          */
         line_table(const std::shared_ptr<section> &sec, section_offset offset,
                    unsigned cu_addr_size, const std::string &cu_comp_dir,
-                   const std::string &cu_name);
+                   const std::string &cu_name, const std::string &cu_producer);
 
         /**
          * Construct an invalid, empty line table.

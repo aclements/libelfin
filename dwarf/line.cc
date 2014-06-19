@@ -53,7 +53,7 @@ struct line_table::impl
 
 line_table::line_table(const shared_ptr<section> &sec, section_offset offset,
                        unsigned cu_addr_size, const string &cu_comp_dir,
-                       const string &cu_name)
+                       const string &cu_name, const string &cu_producer)
         : m(make_shared<impl>())
 {
         // XXX DWARF2 and 3 give a weird specification for DW_AT_comp_dir
@@ -93,6 +93,11 @@ line_table::line_table(const shared_ptr<section> &sec, section_offset offset,
                 throw format_error("line_range cannot be 0 in line number table");
         m->opcode_base = cur.fixed<ubyte>();
         m->standard_opcodes = min(version == 2 ? 10 : 13, (int)m->opcode_base);
+        
+        // LLVM/Clang specifies version 2 for the line table, but uses standard opcodes from version 3
+        if(cu_producer.find("LLVM") != string::npos || cu_producer.find("clang") != string::npos)
+                m->standard_opcodes = 13;
+        
         static_assert(sizeof(opcode_lengths) / sizeof(opcode_lengths[0]) == 13,
                       "opcode_lengths table has wrong length");
 
