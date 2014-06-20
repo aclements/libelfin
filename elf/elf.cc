@@ -156,9 +156,9 @@ struct section::impl
 
         const elf f;
         Shdr<> hdr;
-        const char *name;
+        const char *name = nullptr;
         size_t name_len;
-        const void *data;
+        const void *data = nullptr;
 };
 
 section::section(const elf &f, const void *hdr)
