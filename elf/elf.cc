@@ -152,13 +152,13 @@ enums::to_string(shn v)
 struct section::impl
 {
         impl(const elf &f)
-                : f(f) { }
+                : f(f), name(nullptr), data(nullptr) { }
 
         const elf f;
         Shdr<> hdr;
-        const char *name = nullptr;
+        const char *name;
         size_t name_len;
-        const void *data = nullptr;
+        const void *data;
 };
 
 section::section(const elf &f, const void *hdr)
