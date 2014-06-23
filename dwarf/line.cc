@@ -30,7 +30,6 @@ struct line_table::impl
         sbyte line_base;
         ubyte line_range;
         ubyte opcode_base;
-        ubyte standard_opcodes;
         vector<ubyte> standard_opcode_lengths;
         vector<string> include_directories;
         vector<file> file_names;
@@ -53,7 +52,7 @@ struct line_table::impl
 
 line_table::line_table(const shared_ptr<section> &sec, section_offset offset,
                        unsigned cu_addr_size, const string &cu_comp_dir,
-                       const string &cu_name, const string &cu_producer)
+                       const string &cu_name)
         : m(make_shared<impl>())
 {
         // XXX DWARF2 and 3 give a weird specification for DW_AT_comp_dir
@@ -92,11 +91,6 @@ line_table::line_table(const shared_ptr<section> &sec, section_offset offset,
         if (m->line_range == 0)
                 throw format_error("line_range cannot be 0 in line number table");
         m->opcode_base = cur.fixed<ubyte>();
-        m->standard_opcodes = min(version == 2 ? 10 : 13, (int)m->opcode_base);
-        
-        // LLVM/Clang specifies version 2 for the line table, but uses standard opcodes from version 3
-        if(cu_producer.find("LLVM") != string::npos || cu_producer.find("clang") != string::npos)
-                m->standard_opcodes = 13;
         
         static_assert(sizeof(opcode_lengths) / sizeof(opcode_lengths[0]) == 13,
                       "opcode_lengths table has wrong length");
@@ -106,7 +100,7 @@ line_table::line_table(const shared_ptr<section> &sec, section_offset offset,
         m->standard_opcode_lengths[0] = 0;
         for (unsigned i = 1; i < m->opcode_base; i++) {
                 ubyte length = cur.fixed<ubyte>();
-                if (i < m->standard_opcodes && length != opcode_lengths[i])
+                if (length != opcode_lengths[i])
                         // The spec never says what to do if the
                         // opcode length of a standard opcode doesn't
                         // match the header.  Do the safe thing.
@@ -328,7 +322,7 @@ line_table::iterator::step(cursor *cur)
                 regs.discriminator = 0;
 
                 return true;
-        } else if (opcode && opcode < table->m->standard_opcodes) {
+        } else if (opcode != 0) {
                 // Standard opcode (DWARF4 sections 6.2.3 and 6.2.5.2)
                 uint64_t uarg;
 #pragma GCC diagnostic push
