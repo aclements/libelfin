@@ -152,7 +152,7 @@ enums::to_string(shn v)
 struct section::impl
 {
         impl(const elf &f)
-                : f(f) { }
+                : f(f), name(nullptr), data(nullptr) { }
 
         const elf f;
         Shdr<> hdr;
