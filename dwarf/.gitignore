@@ -1,5 +1,7 @@
 *.o
+*.os
 to_string.cc
 libdwarf++.a
+libdwarf++.so
 libdwarf++.pc
 /doc/
