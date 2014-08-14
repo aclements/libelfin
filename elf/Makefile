@@ -33,17 +33,21 @@ libelf++.pc: always
 	  echo "Name: libelf++"; \
 	  echo "Description: C++11 ELF library"; \
 	  echo "Version: $$VER"; \
-	  echo "Libs: -L\$${prefix} -lelf++"; \
-	  echo "Cflags: -I\$${prefix}") > $@
+	  echo "Libs: -L\$${prefix}/lib -lelf++"; \
+	  echo "Cflags: -I\$${prefix}/include") > $@
 CLEAN += libelf++.pc
 
 .PHONY: always
 
+PREFIX?=/usr/local
+
 install: libelf++.a libelf++.pc
-	install -d /usr/local/lib/pkgconfig
-	install -t /usr/local/lib libelf++.a
-	sed 's,^prefix=.*,prefix=/usr/local/lib,' libelf++.pc \
-		> /usr/local/lib/pkgconfig/libelf++.pc
+	install -d $(PREFIX)/lib/pkgconfig
+	install -t $(PREFIX)/lib libelf++.a
+	install -d $(PREFIX)/include/libelfin/elf
+	install -t $(PREFIX)/include/libelfin/elf common.hh data.hh elf++.hh
+	sed 's,^prefix=.*,prefix=$(PREFIX),' libelf++.pc \
+		> $(PREFIX)/lib/pkgconfig/libelf++.pc
 
 clean:
 	rm -f $(CLEAN)
