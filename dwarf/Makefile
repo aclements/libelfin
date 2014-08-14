@@ -42,8 +42,8 @@ libdwarf++.pc: always
 	  echo "Description: C++11 DWARF library"; \
 	  echo "Version: $$VER"; \
 	  echo "Requires: libelf++ = $$VER"; \
-	  echo "Libs: -L\$${prefix} -ldwarf++"; \
-	  echo "Cflags: -I\$${prefix}") > $@
+	  echo "Libs: -L\$${prefix}/lib -ldwarf++"; \
+	  echo "Cflags: -I\$${prefix}/include") > $@
 CLEAN += libdwarf++.pc
 
 .PHONY: always
@@ -54,7 +54,9 @@ install: libdwarf++.a libdwarf++.pc
 	install -d $(PREFIX)/lib/pkgconfig
 	install -t $(PREFIX)/lib libdwarf++.a
 	install -t $(PREFIX)/lib libdwarf++.so
-	sed 's,^prefix=.*,prefix=$(PREFIX)/lib,' libdwarf++.pc \
+	install -d $(PREFIX)/include/libelfin/dwarf
+	install -t $(PREFIX)/include/libelfin/dwarf data.hh dwarf++.hh small_vector.hh
+	sed 's,^prefix=.*,prefix=$(PREFIX),' libdwarf++.pc \
 		> $(PREFIX)/lib/pkgconfig/libdwarf++.pc
 
 clean:

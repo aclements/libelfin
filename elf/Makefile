@@ -40,8 +40,8 @@ libelf++.pc: always
 	  echo "Name: libelf++"; \
 	  echo "Description: C++11 ELF library"; \
 	  echo "Version: $$VER"; \
-	  echo "Libs: -L\$${prefix} -lelf++"; \
-	  echo "Cflags: -I\$${prefix}") > $@
+	  echo "Libs: -L\$${prefix}/lib -lelf++"; \
+	  echo "Cflags: -I\$${prefix}/include") > $@
 CLEAN += libelf++.pc
 
 .PHONY: always
@@ -52,7 +52,9 @@ install: libelf++.a libelf++.so libelf++.pc
 	install -d $(PREFIX)/lib/pkgconfig
 	install -t $(PREFIX)/lib libelf++.a
 	install -t $(PREFIX)/lib libelf++.so
-	sed 's,^prefix=.*,prefix=$(PREFIX)/lib,' libelf++.pc \
+	install -d $(PREFIX)/include/libelfin/elf
+	install -t $(PREFIX)/include/libelfin/elf common.hh data.hh elf++.hh
+	sed 's,^prefix=.*,prefix=$(PREFIX),' libelf++.pc \
 		> $(PREFIX)/lib/pkgconfig/libelf++.pc
 
 clean:
