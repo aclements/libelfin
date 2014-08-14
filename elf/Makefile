@@ -46,14 +46,14 @@ CLEAN += libelf++.pc
 
 .PHONY: always
 
-PREFIX?=/usr/local/lib
+PREFIX?=/usr/local
 
 install: libelf++.a libelf++.so libelf++.pc
-	install -d $(PREFIX)/pkgconfig
-	install -t $(PREFIX) libelf++.a
-	install -t $(PREFIX) libelf++.so
-	sed 's,^prefix=.*,prefix=$(PREFIX),' libelf++.pc \
-		> $(PREFIX)/pkgconfig/libelf++.pc
+	install -d $(PREFIX)/lib/pkgconfig
+	install -t $(PREFIX)/lib libelf++.a
+	install -t $(PREFIX)/lib libelf++.so
+	sed 's,^prefix=.*,prefix=$(PREFIX)/lib,' libelf++.pc \
+		> $(PREFIX)/lib/pkgconfig/libelf++.pc
 
 clean:
 	rm -f $(CLEAN)

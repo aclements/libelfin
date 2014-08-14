@@ -48,14 +48,14 @@ CLEAN += libdwarf++.pc
 
 .PHONY: always
 
-PREFIX?=/usr/local/lib
+PREFIX?=/usr/local
 
 install: libdwarf++.a libdwarf++.pc
-	install -d $(PREFIX)/pkgconfig
-	install -t $(PREFIX) libdwarf++.a
-	install -t $(PREFIX) libdwarf++.so
-	sed 's,^prefix=.*,prefix=$(PREFIX),' libdwarf++.pc \
-		> $(PREFIX)/pkgconfig/libdwarf++.pc
+	install -d $(PREFIX)/lib/pkgconfig
+	install -t $(PREFIX)/lib libdwarf++.a
+	install -t $(PREFIX)/lib libdwarf++.so
+	sed 's,^prefix=.*,prefix=$(PREFIX)/lib,' libdwarf++.pc \
+		> $(PREFIX)/lib/pkgconfig/libdwarf++.pc
 
 clean:
 	rm -f $(CLEAN)
