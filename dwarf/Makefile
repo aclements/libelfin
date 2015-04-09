@@ -1,5 +1,5 @@
 CXXFLAGS+=-g -O2 -Werror
-override CXXFLAGS+=-std=c++0x -Wall
+override CXXFLAGS+=-std=c++0x -Wall -fPIC
 
 all: libdwarf++.a libdwarf++.pc
 
