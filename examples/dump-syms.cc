@@ -19,7 +19,7 @@ int main(int argc, char **argv)
 
         elf::elf f(elf::create_mmap_loader(fd));
         for (auto &sec : f.sections()) {
-                if (sec.get_hdr().type != elf::sht::symtab)
+                if (sec.get_hdr().type != elf::sht::symtab && sec.get_hdr().type != elf::sht::dynsym)
                         continue;
 
                 printf("Symbol table '%s':\n", sec.get_name().c_str());
