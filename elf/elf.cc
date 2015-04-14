@@ -218,7 +218,7 @@ section::as_strtab() const
 symtab
 section::as_symtab() const
 {
-        if (m->hdr.type != sht::symtab)
+        if (m->hdr.type != sht::symtab && m->hdr.type != sht::dynsym)
                 throw section_type_mismatch("cannot use section as symtab");
         return symtab(m->f, data(), size(),
                       m->f.get_section(get_hdr().link).as_strtab());
