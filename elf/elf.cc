@@ -11,7 +11,7 @@ void canon_hdr(Hdr<Elf64, byte_order::native> *out, const void *data,
                elfclass ei_class, elfdata ei_data)
 {
         switch (ei_class) {
-        case elfclass::_32:
+        case elfclass::_32:{
                 switch (ei_data) {
                 case elfdata::lsb:
                         out->from(*(Hdr<Elf32, byte_order::lsb>*)data);
@@ -20,7 +20,9 @@ void canon_hdr(Hdr<Elf64, byte_order::native> *out, const void *data,
                         out->from(*(Hdr<Elf32, byte_order::msb>*)data);
                         break;
                 }
-        case elfclass::_64:
+                break;
+        }
+        case elfclass::_64:{
                 switch (ei_data) {
                 case elfdata::lsb:
                         out->from(*(Hdr<Elf64, byte_order::lsb>*)data);
@@ -29,6 +31,8 @@ void canon_hdr(Hdr<Elf64, byte_order::native> *out, const void *data,
                         out->from(*(Hdr<Elf64, byte_order::msb>*)data);
                         return;
                 }
+                break;
+        }
         }
 }
 
