@@ -1,4 +1,6 @@
 *.o
+*.os
 to_string.cc
 libelf++.a
+libelf++.so
 libelf++.pc
