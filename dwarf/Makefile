@@ -28,6 +28,8 @@ to_string.cc: ../elf/enum-print.py dwarf++.hh data.hh Makefile
 	@echo 'DWARFPP_END_NAMESPACE' >> to_string.cc
 CLEAN += to_string.cc
 
+# Create pkg-config for local library and headers. This will be
+# transformed in to the correct global pkg-config by install.
 libdwarf++.pc: always
 	@(VER=$$(git describe --match 'v*' | sed -e s/^v//); \
 	  echo "prefix=$$PWD"; \
@@ -35,8 +37,8 @@ libdwarf++.pc: always
 	  echo "Description: C++11 DWARF library"; \
 	  echo "Version: $$VER"; \
 	  echo "Requires: libelf++ = $$VER"; \
-	  echo "Libs: -L\$${prefix}/lib -ldwarf++"; \
-	  echo "Cflags: -I\$${prefix}/include") > $@
+	  echo "Libs: -L\$${prefix} -ldwarf++"; \
+	  echo "Cflags: -I\$${prefix}") > $@
 CLEAN += libdwarf++.pc
 
 .PHONY: always
@@ -48,7 +50,7 @@ install: libdwarf++.a libdwarf++.pc
 	install -t $(PREFIX)/lib libdwarf++.a
 	install -d $(PREFIX)/include/libelfin/dwarf
 	install -t $(PREFIX)/include/libelfin/dwarf data.hh dwarf++.hh small_vector.hh
-	sed 's,^prefix=.*,prefix=$(PREFIX),' libdwarf++.pc \
+	sed 's,^prefix=.*,prefix=$(PREFIX),;s,-L${prefix},&/lib,;s,-I${prefix},&/include,' libdwarf++.pc \
 		> $(PREFIX)/lib/pkgconfig/libdwarf++.pc
 
 clean:
