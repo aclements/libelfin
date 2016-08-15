@@ -16,7 +16,7 @@ class loader;
 class section;
 class strtab;
 class symtab;
-
+class segment;
 // XXX Audit for binary compatibility
 
 // XXX Segments, other section types
@@ -83,12 +83,23 @@ public:
         std::shared_ptr<loader> get_loader() const;
 
         /**
+         * Return the segments in this file.
+         */
+        const std::vector<segment> &segments() const;
+
+        /**
+         * Return the segment at the given index. If no such segment
+         * is found, return an invalid segment.
+         */
+        const segment &get_segment(unsigned index) const;
+
+        /**
          * Return the sections in this file.
          */
         const std::vector<section> &sections() const;
 
         /**
-         * Return the section with the specified name.  If no such
+         * Return the section with the specified name. If no such
          * section is found, return an invalid section.
          */
         const section &get_section(const std::string &name) const;
@@ -139,6 +150,63 @@ public:
                 : std::logic_error(what_arg) { }
         explicit section_type_mismatch(const char *what_arg)
                 : std::logic_error(what_arg) { }
+};
+
+/**
+ * An ELF segment.
+ *
+ * This class is internally reference counted and efficiently
+ * copyable.
+ */
+class segment
+{
+public:
+       /**
+        * Construct a segment that is initially not valid.  Calling
+        * methods other than operator= and valid on this results in
+        * undefined behavior.
+        */
+       segment() { }
+
+       segment(const elf &f, const void *hdr);
+       segment(const segment &o) = default;
+       segment(segment &&o) = default;
+
+       /**
+        * Return true if this segment is valid and corresponds to a
+        * segment in the ELF file.
+        */
+       bool valid() const
+       {
+               return !!m;
+       }
+
+       /**
+        * Return the ELF section header in canonical form (ELF64 in
+        * native byte order).
+        */
+       const Phdr<> &get_hdr() const;
+
+       /**
+        * Return this segment's data. The returned buffer will
+        * be file_size() bytes long.
+        */
+       const void *data() const;
+
+       /**
+        * Return the on disk size of this segment in bytes.
+        */
+       size_t file_size() const;
+
+       /**
+        * Return the in-memory size of this segment in bytes.
+        * Bytes between file_size() and mem_size() are implicity zeroes.
+        */
+       size_t mem_size() const;
+
+private:
+       struct impl;
+       std::shared_ptr<impl> m;
 };
 
 /**

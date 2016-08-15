@@ -3,7 +3,7 @@ override CXXFLAGS+=-std=c++0x -Wall
 
 CLEAN :=
 
-all: dump-sections dump-syms dump-tree dump-lines find-pc
+all: dump-sections dump-segments dump-syms dump-tree dump-lines find-pc
 
 # Find libs
 export PKG_CONFIG_PATH+=:../elf:../dwarf
@@ -17,6 +17,10 @@ CPPFLAGS+=-MD -MP -MF .$@.d
 dump-sections: dump-sections.o
 	$(LINK.cc) $^ $(LOADLIBES) $(LDLIBS) -o $@
 CLEAN += dump-sections dump-sections.o
+
+dump-segments: dump-segments.o
+	$(LINK.cc) $^ $(LOADLIBES) $(LDLIBS) -o $@
+CLEAN += dump-segments dump-segments.o
 
 dump-syms: dump-syms.o
 	$(LINK.cc) $^ $(LOADLIBES) $(LDLIBS) -o $@
