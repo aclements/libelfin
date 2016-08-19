@@ -1,3 +1,7 @@
+// Copyright (c) 2013 Austin T. Clements. All rights reserved.
+// Use of this source code is governed by an MIT license
+// that can be found in the LICENSE file.
+
 #ifndef _DWARFPP_INTERNAL_HH_
 #define _DWARFPP_INTERNAL_HH_
 
