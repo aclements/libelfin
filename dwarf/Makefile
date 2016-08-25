@@ -50,7 +50,7 @@ install: libdwarf++.a libdwarf++.pc
 	install -t $(PREFIX)/lib libdwarf++.a
 	install -d $(PREFIX)/include/libelfin/dwarf
 	install -t $(PREFIX)/include/libelfin/dwarf data.hh dwarf++.hh small_vector.hh
-	sed 's,^prefix=.*,prefix=$(PREFIX),;s,-L${prefix},&/lib,;s,-I${prefix},&/include,' libdwarf++.pc \
+	sed 's,^prefix=.*,prefix=$(PREFIX),;s,-L$${prefix},&/lib,;s,-I$${prefix},&/include,' libdwarf++.pc \
 		> $(PREFIX)/lib/pkgconfig/libdwarf++.pc
 
 clean:

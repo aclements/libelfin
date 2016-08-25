@@ -48,7 +48,7 @@ install: libelf++.a libelf++.pc
 	install -t $(PREFIX)/lib libelf++.a
 	install -d $(PREFIX)/include/libelfin/elf
 	install -t $(PREFIX)/include/libelfin/elf common.hh data.hh elf++.hh
-	sed 's,^prefix=.*,prefix=$(PREFIX),;s,-L${prefix},&/lib,;s,-I${prefix},&/include,' libelf++.pc \
+	sed 's,^prefix=.*,prefix=$(PREFIX),;s,-L$${prefix},&/lib,;s,-I$${prefix},&/include,' libelf++.pc \
 		> $(PREFIX)/lib/pkgconfig/libelf++.pc
 
 clean:
