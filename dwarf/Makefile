@@ -32,13 +32,15 @@ CLEAN += to_string.cc
 # transformed in to the correct global pkg-config by install.
 libdwarf++.pc: always
 	@(VER=$$(git describe --match 'v*' | sed -e s/^v//); \
-	  echo "prefix=$$PWD"; \
+	  echo "libdir=$$PWD"; \
+	  echo "includedir=$$PWD"; \
+	  echo ""; \
 	  echo "Name: libdwarf++"; \
 	  echo "Description: C++11 DWARF library"; \
 	  echo "Version: $$VER"; \
 	  echo "Requires: libelf++ = $$VER"; \
-	  echo "Libs: -L\$${prefix} -ldwarf++"; \
-	  echo "Cflags: -I\$${prefix}") > $@
+	  echo "Libs: -L\$${libdir} -ldwarf++"; \
+	  echo "Cflags: -I\$${includedir}") > $@
 CLEAN += libdwarf++.pc
 
 .PHONY: always
@@ -50,7 +52,7 @@ install: libdwarf++.a libdwarf++.pc
 	install -t $(PREFIX)/lib libdwarf++.a
 	install -d $(PREFIX)/include/libelfin/dwarf
 	install -t $(PREFIX)/include/libelfin/dwarf data.hh dwarf++.hh small_vector.hh
-	sed 's,^prefix=.*,prefix=$(PREFIX),;s,-L${prefix},&/lib,;s,-I${prefix},&/include,' libdwarf++.pc \
+	sed 's,^libdir=.*,libdir=$(PREFIX)/lib,;s,^includedir=.*,includedir=$(PREFIX)/include,' libdwarf++.pc \
 		> $(PREFIX)/lib/pkgconfig/libdwarf++.pc
 
 clean:
