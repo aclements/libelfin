@@ -1,5 +1,5 @@
-Libelfin is a from-scratch C++11 library for reading ELF binaries and
-DWARFv4 debug information.
+[Libelfin](https://github.com/aclements/libelfin/) is a from-scratch
+C++11 library for reading ELF binaries and DWARFv4 debug information.
 
 Quick start
 -----------
