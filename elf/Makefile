@@ -31,12 +31,14 @@ CLEAN += to_string.cc
 # transformed in to the correct global pkg-config by install.
 libelf++.pc: always
 	@(VER=$$(git describe --match 'v*' | sed -e s/^v//); \
-	  echo "prefix=$$PWD"; \
+	  echo "libdir=$$PWD"; \
+	  echo "includedir=$$PWD"; \
+	  echo ""; \
 	  echo "Name: libelf++"; \
 	  echo "Description: C++11 ELF library"; \
 	  echo "Version: $$VER"; \
-	  echo "Libs: -L\$${prefix} -lelf++"; \
-	  echo "Cflags: -I\$${prefix}") > $@
+	  echo "Libs: -L\$${libdir} -lelf++"; \
+	  echo "Cflags: -I\$${includedir}") > $@
 CLEAN += libelf++.pc
 
 .PHONY: always
@@ -48,7 +50,7 @@ install: libelf++.a libelf++.pc
 	install -t $(PREFIX)/lib libelf++.a
 	install -d $(PREFIX)/include/libelfin/elf
 	install -t $(PREFIX)/include/libelfin/elf common.hh data.hh elf++.hh
-	sed 's,^prefix=.*,prefix=$(PREFIX),;s,-L${prefix},&/lib,;s,-I${prefix},&/include,' libelf++.pc \
+	sed 's,^libdir=.*,libdir=$(PREFIX)/lib,;s,^includedir=.*,includedir=$(PREFIX)/include,' libelf++.pc \
 		> $(PREFIX)/lib/pkgconfig/libelf++.pc
 
 clean:
