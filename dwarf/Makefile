@@ -27,8 +27,8 @@ to_string.cc: ../elf/enum-print.py dwarf++.hh data.hh Makefile
 	@echo >> to_string.cc
 	@echo 'DWARFPP_BEGIN_NAMESPACE' >> to_string.cc
 	@echo >> to_string.cc
-	python2 ../elf/enum-print.py < dwarf++.hh >> to_string.cc
-	python2 ../elf/enum-print.py -s _ -u --hex -x hi_user -x lo_user < data.hh >> to_string.cc
+	python3 ../elf/enum-print.py < dwarf++.hh >> to_string.cc
+	python3 ../elf/enum-print.py -s _ -u --hex -x hi_user -x lo_user < data.hh >> to_string.cc
 	@echo 'DWARFPP_END_NAMESPACE' >> to_string.cc
 CLEAN += to_string.cc
 

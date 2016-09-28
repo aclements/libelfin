@@ -83,37 +83,37 @@ def expr_remainder(typ, arg):
         return "\"(%s)\" + std::to_string((int)%s)" % (typ, arg)
 
 def make_to_string(typ, arg):
-    print "std::string"
-    print "to_string(%s %s)" % (typ, arg)
-    print "{"
-    print "        switch (%s) {" % arg
+    print("std::string")
+    print("to_string(%s %s)" % (typ, arg))
+    print("{")
+    print("        switch (%s) {" % arg)
     for key in enums[typ]:
         if key in options.exclude:
-            print "        case %s::%s: break;" % (typ, key)
+            print("        case %s::%s: break;" % (typ, key))
             continue
-        print "        case %s::%s: return \"%s\";" % \
-            (typ, key, fmt_value(typ, key))
-    print "        }"
-    print "        return %s;" % expr_remainder(typ, arg)
-    print "}"
-    print
+        print("        case %s::%s: return \"%s\";" % \
+            (typ, key, fmt_value(typ, key)))
+    print("        }")
+    print("        return %s;" % expr_remainder(typ, arg))
+    print("}")
+    print()
 
 def make_to_string_mask(typ, arg):
-    print "std::string"
-    print "to_string(%s %s)" % (typ, arg)
-    print "{"
-    print "        std::string res;"
+    print("std::string")
+    print("to_string(%s %s)" % (typ, arg))
+    print("{")
+    print("        std::string res;")
     for key in enums[typ]:
         if key in options.exclude:
             continue
-        print "        if ((%s & %s::%s) == %s::%s) { res += \"%s|\"; %s &= ~%s::%s; }" % \
-            (arg, typ, key, typ, key, fmt_value(typ, key), arg, typ, key)
-    print "        if (res.empty() || %s != (%s)0) res += %s;" % \
-        (arg, typ, expr_remainder(typ, arg))
-    print "        else res.pop_back();"
-    print "        return res;"
-    print "}"
-    print
+        print("        if ((%s & %s::%s) == %s::%s) { res += \"%s|\"; %s &= ~%s::%s; }" % \
+            (arg, typ, key, typ, key, fmt_value(typ, key), arg, typ, key))
+    print("        if (res.empty() || %s != (%s)0) res += %s;" % \
+        (arg, typ, expr_remainder(typ, arg)))
+    print("        else res.pop_back();")
+    print("        return res;")
+    print("}")
+    print()
 
 def do_enum_body(name, toks):
     keys = []

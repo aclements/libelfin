@@ -26,7 +26,7 @@ to_string.cc: enum-print.py data.hh Makefile
 	@echo >> to_string.cc
 	@echo 'ELFPP_BEGIN_NAMESPACE' >> to_string.cc
 	@echo >> to_string.cc
-	python2 enum-print.py -u --hex --no-type --mask shf --mask pf \
+	python3 enum-print.py -u --hex --no-type --mask shf --mask pf \
 		-x loos -x hios -x loproc -x hiproc < data.hh >> to_string.cc
 	@echo 'ELFPP_END_NAMESPACE' >> to_string.cc
 CLEAN += to_string.cc
