@@ -8,7 +8,8 @@ all: dump-sections dump-segments dump-syms dump-tree dump-lines find-pc
 # Find libs
 export PKG_CONFIG_PATH+=:../elf:../dwarf
 CPPFLAGS+=$$(pkg-config --cflags libelf++ libdwarf++)
-LDLIBS+=$$(pkg-config --libs libelf++ libdwarf++)
+# Statically link against our libs to keep the example binaries simple.
+LDLIBS+=-Wl,-Bstatic $$(pkg-config --libs libelf++ libdwarf++) -Wl,-Bdynamic
 
 # Dependencies
 CPPFLAGS+=-MD -MP -MF .$@.d
