@@ -9,3 +9,6 @@ install:
 clean:
 	$(MAKE) -C elf clean
 	$(MAKE) -C dwarf clean
+
+check:
+	cd test && ./test.sh
