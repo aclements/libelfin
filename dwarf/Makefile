@@ -1,7 +1,11 @@
+# Changed when ABI backwards compatibility is broken.
+# Typically uses the major version.
+SONAME = 0
+
 CXXFLAGS+=-g -O2 -Werror
 override CXXFLAGS+=-std=c++0x -Wall -fPIC
 
-all: libdwarf++.a libdwarf++.pc
+all: libdwarf++.a libdwarf++.so.$(SONAME) libdwarf++.so libdwarf++.pc
 
 SRCS := dwarf.cc cursor.cc die.cc value.cc abbrev.cc \
 	expr.cc rangelist.cc line.cc attrs.cc \
@@ -28,6 +32,14 @@ to_string.cc: ../elf/enum-print.py dwarf++.hh data.hh Makefile
 	@echo 'DWARFPP_END_NAMESPACE' >> to_string.cc
 CLEAN += to_string.cc
 
+libdwarf++.so.$(SONAME): $(SRCS:.cc=.o)
+	$(CXX) $(CXXFLAGS) $(LDFLAGS) -shared -Wl,-soname,$@ -o $@ $^
+CLEAN += libdwarf++.so.*
+
+libdwarf++.so:
+	ln -s $@.$(SONAME) $@
+CLEAN += libdwarf++.so
+
 # Create pkg-config for local library and headers. This will be
 # transformed in to the correct global pkg-config by install.
 libdwarf++.pc: always
@@ -47,9 +59,11 @@ CLEAN += libdwarf++.pc
 
 PREFIX?=/usr/local
 
-install: libdwarf++.a libdwarf++.pc
+install: libdwarf++.a libdwarf++.so.$(SONAME) libdwarf++.so libdwarf++.pc
 	install -d $(PREFIX)/lib/pkgconfig
 	install -t $(PREFIX)/lib libdwarf++.a
+	install -t $(PREFIX)/lib libdwarf++.so.$(SONAME)
+	install -t $(PREFIX)/lib libdwarf++.so
 	install -d $(PREFIX)/include/libelfin/dwarf
 	install -t $(PREFIX)/include/libelfin/dwarf data.hh dwarf++.hh small_vector.hh
 	sed 's,^libdir=.*,libdir=$(PREFIX)/lib,;s,^includedir=.*,includedir=$(PREFIX)/include,' libdwarf++.pc \
