@@ -2,6 +2,7 @@
 #include "dwarf++.hh"
 
 #include <fcntl.h>
+#include <inttypes.h>
 
 using namespace std;
 
@@ -12,7 +13,7 @@ dump_line_table(const dwarf::line_table &lt)
                 if (line.end_sequence)
                         printf("\n");
                 else
-                        printf("%-40s%8d%#20lx\n", line.file->path.c_str(),
+                        printf("%-40s%8d%#20" PRIx64 "\n", line.file->path.c_str(),
                                line.line, line.address);
         }
 }
