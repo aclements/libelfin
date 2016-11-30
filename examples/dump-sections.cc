@@ -3,6 +3,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
+#include <inttypes.h>
 
 int main(int argc, char **argv)
 {
@@ -25,14 +26,14 @@ int main(int argc, char **argv)
                "Size", "EntSize", "Flags", "Link", "Info", "Align");
         for (auto &sec : f.sections()) {
                 auto &hdr = sec.get_hdr();
-                printf("  [%2d] %-16s %-16s %016lx %08lx\n", i++,
+                printf("  [%2d] %-16s %-16s %016" PRIx64 " %08" PRIx64 "\n", i++,
                        sec.get_name().c_str(),
                        to_string(hdr.type).c_str(),
-                       (unsigned long)hdr.addr, (unsigned long)hdr.offset);
-                printf("       %016zx %016lx %-15s %5s %4d %5lu\n",
-                       sec.size(), (unsigned long)hdr.entsize,
+                       hdr.addr, hdr.offset);
+                printf("       %016zx %016" PRIx64 " %-15s %5s %4d %5" PRIu64 "\n",
+                       sec.size(), hdr.entsize,
                        to_string(hdr.flags).c_str(), to_string(hdr.link).c_str(),
-                       (int)hdr.info, (unsigned long)hdr.addralign);
+                       (int)hdr.info, hdr.addralign);
         }
 
         return 0;

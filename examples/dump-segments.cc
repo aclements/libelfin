@@ -3,6 +3,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
+#include <inttypes.h>
 
 int main(int argc, char **argv)
 {
@@ -24,12 +25,12 @@ int main(int argc, char **argv)
                 " ", "FileSiz", "MemSiz", "Flags", "Align");
         for (auto &seg : f.segments()) {
                 auto &hdr = seg.get_hdr();
-                printf("   %-16s 0x%016lx 0x%016lx 0x%016lx\n",
-                        to_string(hdr.type).c_str(), (unsigned long)hdr.offset,
-                        (unsigned long)hdr.vaddr, (unsigned long)hdr.paddr);
-                printf("   %-16s 0x%016lx 0x%016lx %-5s %-5lx\n", "",
-                        (unsigned long)hdr.filesz, (unsigned long)hdr.memsz,
-                        to_string(hdr.flags).c_str(), (unsigned long)hdr.align);
+                printf("   %-16s 0x%016" PRIx64 " 0x%016" PRIx64 " 0x%016" PRIx64 "\n",
+                        to_string(hdr.type).c_str(), hdr.offset,
+                        hdr.vaddr, hdr.paddr);
+                printf("   %-16s 0x%016" PRIx64 " 0x%016" PRIx64 " %-5s %-5" PRIx64 "\n", "",
+                        hdr.filesz, hdr.memsz,
+                        to_string(hdr.flags).c_str(), hdr.align);
         }
 
         return 0;

@@ -2,14 +2,15 @@
 #include "dwarf++.hh"
 
 #include <fcntl.h>
+#include <inttypes.h>
 
 using namespace std;
 
 void
 dump_tree(const dwarf::die &node, int depth = 0)
 {
-        printf("%*.s<%x> %s\n", depth, "",
-               (unsigned int)(node.get_section_offset()),
+        printf("%*.s<%" PRIx64 "> %s\n", depth, "",
+               node.get_section_offset(),
                to_string(node.tag).c_str());
         for (auto &attr : node.attributes())
                 printf("%*.s      %s %s\n", depth, "",
@@ -37,7 +38,7 @@ main(int argc, char **argv)
         dwarf::dwarf dw(dwarf::elf::create_loader(ef));
 
         for (auto cu : dw.compilation_units()) {
-                printf("--- <%x>\n", (unsigned int)cu.get_section_offset());
+                printf("--- <%" PRIx64 ">\n", cu.get_section_offset());
                 dump_tree(cu.root());
         }
 

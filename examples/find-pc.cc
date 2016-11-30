@@ -3,6 +3,7 @@
 
 #include <fcntl.h>
 #include <string>
+#include <inttypes.h>
 
 using namespace std;
 
@@ -45,8 +46,8 @@ find_pc(const dwarf::die &d, dwarf::taddr pc, vector<dwarf::die> *stack)
 void
 dump_die(const dwarf::die &node)
 {
-        printf("<%x> %s\n",
-               (unsigned int)(node.get_section_offset()),
+        printf("<%" PRIx64 "> %s\n",
+               node.get_section_offset(),
                to_string(node.tag).c_str());
         for (auto &attr : node.attributes())
                 printf("      %s %s\n",

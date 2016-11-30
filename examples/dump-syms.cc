@@ -3,6 +3,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
+#include <inttypes.h>
 
 int main(int argc, char **argv)
 {
@@ -29,8 +30,8 @@ int main(int argc, char **argv)
                 int i = 0;
                 for (auto sym : sec.as_symtab()) {
                         auto &d = sym.get_data();
-                        printf("%6d: %016lx %5d %-7s %-7s %5s %s\n",
-                               i++, (unsigned long)d.value, (int)d.size,
+                        printf("%6d: %016" PRIx64 " %5" PRId64 " %-7s %-7s %5s %s\n",
+                               i++, d.value, d.size,
                                to_string(d.type()).c_str(),
                                to_string(d.binding()).c_str(),
                                to_string(d.shnxd).c_str(),
