@@ -7,6 +7,8 @@
 
 #define ELFPP_BEGIN_NAMESPACE namespace elf {
 #define ELFPP_END_NAMESPACE   }
+#define ELFPP_BEGIN_INTERNAL  namespace internal {
+#define ELFPP_END_INTERNAL    }
 
 #include <cstdint>
 
@@ -73,6 +75,34 @@ swizzle(T v, byte_order from, byte_order to)
                 return (T)__builtin_bswap64((std::uint64_t)v);
         }
 }
+
+ELFPP_BEGIN_INTERNAL
+
+/**
+ * OrderPick selects between Native, LSB, and MSB based on ord.
+ */
+template<byte_order ord, typename Native, typename LSB, typename MSB>
+struct OrderPick;
+
+template<typename Native, typename LSB, typename MSB>
+struct OrderPick<byte_order::native, Native, LSB, MSB>
+{
+        typedef Native T;
+};
+
+template<typename Native, typename LSB, typename MSB>
+struct OrderPick<byte_order::lsb, Native, LSB, MSB>
+{
+        typedef LSB T;
+};
+
+template<typename Native, typename LSB, typename MSB>
+struct OrderPick<byte_order::msb, Native, LSB, MSB>
+{
+        typedef MSB T;
+};
+
+ELFPP_END_INTERNAL
 
 ELFPP_END_NAMESPACE
 

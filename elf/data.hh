@@ -172,7 +172,7 @@ struct Ehdr
 // enum, rather than a type-safe enum.  However, this is declared in a
 // namespace and then used to avoid polluting the elf:: namespace.
 namespace enums {
-enum shn : ElfTypes::Half
+enum shn : ElfTypes::Half       // This is a Word in Shdr and Half in Sym.
 {
         undef = 0,              // Undefined or meaningless
 
@@ -276,6 +276,11 @@ struct Shdr
 {
         typedef E types;
         static const byte_order order = Order;
+        // Section numbers are half-words in some structures and full
+        // words in others. Here we declare a local shn type that is
+        // elf::shn for the native byte order, but the full word for
+        // specific encoding byte orders.
+        typedef typename internal::OrderPick<Order, elf::shn, typename E::Word, typename E::Word>::T shn;
 
         typename E::Word           name; // Section name
         sht                        type; // Section type
@@ -297,7 +302,7 @@ struct Shdr
                 addr      = swizzle(o.addr, o.order, order);
                 offset    = swizzle(o.offset, o.order, order);
                 size      = swizzle(o.size, o.order, order);
-                link      = swizzle(o.link, o.order, order);
+                link      = (decltype(link))swizzle((typename E::Word)o.link, o.order, order);
                 info      = swizzle(o.info, o.order, order);
                 addralign = swizzle(o.addralign, o.order, order);
                 entsize   = swizzle(o.entsize, o.order, order);
