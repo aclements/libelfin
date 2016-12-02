@@ -22,6 +22,27 @@ enum class format
         dwarf64
 };
 
+enum class byte_order
+{
+        lsb,
+        msb
+};
+
+/**
+ * Return this system's native byte order.
+ */
+static inline byte_order
+native_order()
+{
+        static const union
+        {
+                int i;
+                char c[sizeof(int)];
+        } test = {1};
+
+        return test.c[0] == 1 ? byte_order::lsb : byte_order::msb;
+}
+
 /**
  * A single DWARF section or a slice of a section.  This also tracks
  * dynamic information necessary to decode values in this section.
@@ -31,13 +52,15 @@ struct section
         section_type type;
         const char *begin, *end;
         const format fmt;
+        const byte_order ord;
         unsigned addr_size;
 
         section(section_type type, const void *begin,
-                section_length length, format fmt = format::unknown,
+                section_length length,
+                byte_order ord, format fmt = format::unknown,
                 unsigned addr_size = 0)
                 : type(type), begin((char*)begin), end((char*)begin + length),
-                  fmt(fmt), addr_size(addr_size) { }
+                  fmt(fmt), ord(ord), addr_size(addr_size) { }
 
         section(const section &o) = default;
 
@@ -53,7 +76,7 @@ struct section
                 return std::make_shared<section>(
                         type, begin+start,
                         std::min(len, (section_length)(end-begin)),
-                        fmt, addr_size);
+                        ord, fmt, addr_size);
         }
 
         size_t size() const
@@ -107,9 +130,18 @@ struct cursor
         T fixed()
         {
                 ensure(sizeof(T));
-                T val = *(T*)pos;
+                static_assert(sizeof(T) <= 8, "T too big");
+                uint64_t val = 0;
+                const unsigned char *p = (const unsigned char*)pos;
+                if (sec->ord == byte_order::lsb) {
+                        for (unsigned i = 0; i < sizeof(T); i++)
+                                val |= ((uint64_t)p[i]) << (i * 8);
+                } else {
+                        for (unsigned i = 0; i < sizeof(T); i++)
+                                val = (val << 8) | (uint64_t)p[i];
+                }
                 pos += sizeof(T);
-                return val;
+                return (T)val;
         }
 
         std::uint64_t uleb128()

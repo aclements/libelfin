@@ -49,7 +49,7 @@ cursor::subsection()
                 throw format_error("initial length has reserved value");
         }
         pos = begin + length;
-        return make_shared<section>(sec->type, begin, length, fmt);
+        return make_shared<section>(sec->type, begin, length, sec->ord, fmt);
 }
 
 void

@@ -27,8 +27,8 @@ rangelist::rangelist(const initializer_list<pair<taddr, taddr> > &ranges)
 
         sec = make_shared<section>(
                 section_type::ranges, (const char*)synthetic.data(),
-                synthetic.size() * sizeof(taddr), format::unknown,
-                sizeof(taddr));
+                synthetic.size() * sizeof(taddr),
+                native_order(), format::unknown, sizeof(taddr));
 
         base_addr = 0;
 }

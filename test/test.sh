@@ -9,7 +9,7 @@ die() {
 
 dumps="sections segments lines syms tree"
 binaries=example
-compilers=gcc-4.9.2
+compilers="gcc-4.9.2 gcc-6.2.1-s390x"
 
 if [[ $1 == --make-golden ]]; then
     MODE=make-golden

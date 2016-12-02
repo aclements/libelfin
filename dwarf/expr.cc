@@ -51,7 +51,8 @@ expr::evaluate(expr_context *ctx, const std::initializer_list<taddr> &arguments)
         shared_ptr<section> subsec
                 (make_shared<section>(cusec->type,
                                       cusec->begin + offset, len,
-                                      cusec->fmt, cusec->addr_size));
+                                      cusec->ord, cusec->fmt,
+                                      cusec->addr_size));
         cursor cur(subsec);
 
         // Prepare the expression result.  Some location descriptions

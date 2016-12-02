@@ -53,8 +53,6 @@ struct cursor;
 
 // XXX operator==/!= and hash functions
 
-// XXX Support non-native byte order
-
 // XXX Indicate DWARF4 in all spec references
 
 // XXX Big missing support: .debug_aranges, .debug_frame, loclists,
