@@ -289,8 +289,7 @@ compilation_unit::get_line_table() const
 {
         if (!m->lt.valid()) {
                 const die &d = root();
-                if (!d.has(DW_AT::stmt_list) || !d.has(DW_AT::name) ||
-                    !d.has(DW_AT::comp_dir))
+                if (!d.has(DW_AT::stmt_list) || !d.has(DW_AT::name))
                         goto done;
 
                 shared_ptr<section> sec;
@@ -300,8 +299,10 @@ compilation_unit::get_line_table() const
                         goto done;
                 }
 
+                auto comp_dir = d.has(DW_AT::comp_dir) ? at_comp_dir(d) : "";
+                
                 m->lt = line_table(sec, d[DW_AT::stmt_list].as_sec_offset(),
-                                   m->subsec->addr_size, at_comp_dir(d),
+                                   m->subsec->addr_size, comp_dir,
                                    at_name(d));
         }
 done:
