@@ -48,7 +48,7 @@ public:
  * section data.  Hence, callers must ensure that the loader passed to
  * this file remains live as long as any such pointer is in use.
  * Keeping any object that can return such a pointer live is
- * sufficieint to keep the loader live.
+ * sufficient to keep the loader live.
  */
 class elf
 {
@@ -204,7 +204,7 @@ public:
 
        /**
         * Return the in-memory size of this segment in bytes.
-        * Bytes between file_size() and mem_size() are implicity zeroes.
+        * Bytes between file_size() and mem_size() are implicitly zeroes.
         */
        size_t mem_size() const;
 
