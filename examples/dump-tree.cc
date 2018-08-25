@@ -1,6 +1,7 @@
 #include "elf++.hh"
 #include "dwarf++.hh"
 
+#include <errno.h>
 #include <fcntl.h>
 #include <inttypes.h>
 
