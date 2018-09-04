@@ -114,6 +114,8 @@ public:
          */
         const section &get_section(unsigned index) const;
 
+        friend class section;
+        friend class segment;
 private:
         struct impl;
         std::shared_ptr<impl> m;
