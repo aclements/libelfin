@@ -12,10 +12,9 @@ DWARFPP_BEGIN_NAMESPACE
 // class dwarf
 //
 
-struct dwarf::impl
-{
+    struct dwarf::impl {
         impl(const std::shared_ptr<loader> &l)
-                : l(l), have_type_units(false) { }
+                : l(l), have_type_units(false) {}
 
         std::shared_ptr<loader> l;
 
@@ -28,19 +27,19 @@ struct dwarf::impl
         bool have_type_units;
 
         std::map<section_type, std::shared_ptr<section> > sections;
-};
+    };
 
-dwarf::dwarf(const std::shared_ptr<loader> &l)
-        : m(make_shared<impl>(l))
-{
+    dwarf::dwarf(const std::shared_ptr<loader> &l)
+            : m(make_shared<impl>(l)) {
         const void *data;
         size_t size;
 
         // Get required sections
         data = l->load(section_type::info, &size);
         if (!data)
-                throw format_error("required .debug_info section missing");
-        m->sec_info = make_shared<section>(section_type::info, data, size, byte_order::lsb);
+            throw format_error("required .debug_info section missing");
+        m->sec_info = make_shared<section>(section_type::info, data, size,
+                                           byte_order::lsb);
 
         // Sniff the endianness from the version field of the first
         // CU. This is always a small but non-zero integer.
@@ -48,83 +47,82 @@ dwarf::dwarf(const std::shared_ptr<loader> &l)
         // Skip length.
         section_length length = endcur.fixed<uword>();
         if (length == 0xffffffff)
-                endcur.fixed<uint64_t>();
+            endcur.fixed<uint64_t>();
         // Get version in both little and big endian.
         uhalf version = endcur.fixed<uhalf>();
         uhalf versionbe = (version >> 8) | ((version & 0xFF) << 8);
         if (versionbe < version) {
-                m->sec_info = make_shared<section>(section_type::info, data, size, byte_order::msb);
+            m->sec_info = make_shared<section>(section_type::info, data, size,
+                                               byte_order::msb);
         }
 
         data = l->load(section_type::abbrev, &size);
         if (!data)
-                throw format_error("required .debug_abbrev section missing");
-        m->sec_abbrev = make_shared<section>(section_type::abbrev, data, size, m->sec_info->ord);
+            throw format_error("required .debug_abbrev section missing");
+        m->sec_abbrev = make_shared<section>(section_type::abbrev, data, size,
+                                             m->sec_info->ord);
 
         // Get compilation units.  Everything derives from these, so
         // there's no point in doing it lazily.
         cursor infocur(m->sec_info);
         while (!infocur.end()) {
-                // XXX Circular reference.  Given that we now require
-                // the dwarf object to stick around for DIEs, maybe we
-                // might as well require that for units, too.
-                m->compilation_units.emplace_back(
-                        *this, infocur.get_section_offset());
-                infocur.subsection();
+            // XXX Circular reference.  Given that we now require
+            // the dwarf object to stick around for DIEs, maybe we
+            // might as well require that for units, too.
+            m->compilation_units.emplace_back(
+                    *this, infocur.get_section_offset());
+            infocur.subsection();
         }
-}
+    }
 
-dwarf::~dwarf()
-{
-}
+    dwarf::~dwarf() {
+    }
 
-const std::vector<compilation_unit> &
-dwarf::compilation_units() const
-{
+    const std::vector<compilation_unit> &
+    dwarf::compilation_units() const {
         static std::vector<compilation_unit> empty;
         if (!m)
-                return empty;
+            return empty;
         return m->compilation_units;
-}
+    }
 
-const type_unit &
-dwarf::get_type_unit(uint64_t type_signature) const
-{
+    const type_unit &
+    dwarf::get_type_unit(uint64_t type_signature) const {
         if (!m->have_type_units) {
-                cursor tucur(get_section(section_type::types));
-                while (!tucur.end()) {
-                        // XXX Circular reference
-                        type_unit tu(*this, tucur.get_section_offset());
-                        m->type_units[tu.get_type_signature()] = tu;
-                        tucur.subsection();
-                }
-                m->have_type_units = true;
+            cursor tucur(get_section(section_type::types));
+            while (!tucur.end()) {
+                // XXX Circular reference
+                type_unit tu(*this, tucur.get_section_offset());
+                m->type_units[tu.get_type_signature()] = tu;
+                tucur.subsection();
+            }
+            m->have_type_units = true;
         }
         if (!m->type_units.count(type_signature))
-                throw out_of_range("type signature 0x" + to_hex(type_signature));
+            throw out_of_range("type signature 0x" + to_hex(type_signature));
         return m->type_units[type_signature];
-}
+    }
 
-std::shared_ptr<section>
-dwarf::get_section(section_type type) const
-{
+    std::shared_ptr<section>
+    dwarf::get_section(section_type type) const {
         if (type == section_type::info)
-                return m->sec_info;
+            return m->sec_info;
         if (type == section_type::abbrev)
-                return m->sec_abbrev;
+            return m->sec_abbrev;
 
         auto it = m->sections.find(type);
         if (it != m->sections.end())
-                return it->second;
+            return it->second;
 
         size_t size;
         const void *data = m->l->load(type, &size);
         if (!data)
-                throw format_error(std::string(elf::section_type_to_name(type))
-                                   + " section missing");
-        m->sections[type] = std::make_shared<section>(section_type::str, data, size, m->sec_info->ord);
+            throw format_error(std::string(elf::section_type_to_name(type))
+                               + " section missing");
+        m->sections[type] = std::make_shared<section>(section_type::str, data,
+                                                      size, m->sec_info->ord);
         return m->sections[type];
-}
+    }
 
 //////////////////////////////////////////////////////////////////
 // class unit
@@ -133,8 +131,7 @@ dwarf::get_section(section_type type) const
 /**
  * Implementation of a unit.
  */
-struct unit::impl
-{
+    struct unit::impl {
         const dwarf file;
         const section_offset offset;
         const std::shared_ptr<section> subsec;
@@ -165,75 +162,68 @@ struct unit::impl
                 : file(file), offset(offset), subsec(subsec),
                   debug_abbrev_offset(debug_abbrev_offset),
                   root_offset(root_offset), type_signature(type_signature),
-                  type_offset(type_offset), have_abbrevs(false) { }
+                  type_offset(type_offset), have_abbrevs(false) {}
 
         void force_abbrevs();
-};
+    };
 
-unit::~unit()
-{
-}
+    unit::~unit() {
+    }
 
-const dwarf &
-unit::get_dwarf() const
-{
+    const dwarf &
+    unit::get_dwarf() const {
         return m->file;
-}
+    }
 
-section_offset
-unit::get_section_offset() const
-{
+    section_offset
+    unit::get_section_offset() const {
         return m->offset;
-}
+    }
 
-const die&
-unit::root() const
-{
+    const die &
+    unit::root() const {
         if (!m->root.valid()) {
-                m->force_abbrevs();
-                m->root = die(this);
-                m->root.read(m->root_offset);
+            m->force_abbrevs();
+            m->root = die(this);
+            m->root.read(m->root_offset);
         }
         return m->root;
-}
+    }
 
-const std::shared_ptr<section> &
-unit::data() const
-{
+    const std::shared_ptr<section> &
+    unit::data() const {
         return m->subsec;
-}
+    }
 
-const abbrev_entry &
-unit::get_abbrev(abbrev_code acode) const
-{
+    const abbrev_entry &
+    unit::get_abbrev(abbrev_code acode) const {
         if (!m->have_abbrevs)
-                m->force_abbrevs();
+            m->force_abbrevs();
 
         if (!m->abbrevs_vec.empty()) {
-                if (acode >= m->abbrevs_vec.size())
-                        goto unknown;
-                const abbrev_entry &entry = m->abbrevs_vec[acode];
-                if (entry.code == 0)
-                        goto unknown;
-                return entry;
+            if (acode >= m->abbrevs_vec.size())
+                goto unknown;
+            const abbrev_entry &entry = m->abbrevs_vec[acode];
+            if (entry.code == 0)
+                goto unknown;
+            return entry;
         } else {
-                auto it = m->abbrevs_map.find(acode);
-                if (it == m->abbrevs_map.end())
-                        goto unknown;
-                return it->second;
+            auto it = m->abbrevs_map.find(acode);
+            if (it == m->abbrevs_map.end())
+                goto unknown;
+            return it->second;
         }
 
-unknown:
+        unknown:
         throw format_error("unknown abbrev code 0x" + to_hex(acode));
-}
+    }
 
-void
-unit::impl::force_abbrevs()
-{
+    void
+    unit::impl::force_abbrevs() {
         // XXX Compilation units can share abbrevs.  Parse each table
         // at most once.
         if (have_abbrevs)
-                return;
+            return;
 
         // Section 7.5.3
         cursor c(file.get_section(section_type::abbrev),
@@ -241,9 +231,9 @@ unit::impl::force_abbrevs()
         abbrev_entry entry;
         abbrev_code highest = 0;
         while (entry.read(&c)) {
-                abbrevs_map[entry.code] = entry;
-                if (entry.code > highest)
-                        highest = entry.code;
+            abbrevs_map[entry.code] = entry;
+            if (entry.code > highest)
+                highest = entry.code;
         }
 
         // Typically, abbrev codes are assigned linearly, so it's more
@@ -251,22 +241,22 @@ unit::impl::force_abbrevs()
         // vector.  Convert to a vector if it's dense enough, by some
         // rough estimate of "enough".
         if (highest * 10 < abbrevs_map.size() * 15) {
-                // Move the map into the vector
-                abbrevs_vec.resize(highest + 1);
-                for (auto &entry : abbrevs_map)
-                        abbrevs_vec[entry.first] = move(entry.second);
-                abbrevs_map.clear();
+            // Move the map into the vector
+            abbrevs_vec.resize(highest + 1);
+            for (auto &entry : abbrevs_map)
+                abbrevs_vec[entry.first] = move(entry.second);
+            abbrevs_map.clear();
         }
 
         have_abbrevs = true;
-}
+    }
 
 //////////////////////////////////////////////////////////////////
 // class compilation_unit
 //
 
-compilation_unit::compilation_unit(const dwarf &file, section_offset offset)
-{
+    compilation_unit::compilation_unit(const dwarf &file,
+                                       section_offset offset) {
         // Read the CU header (DWARF4 section 7.5.1.1)
         cursor cur(file.get_section(section_type::info), offset);
         std::shared_ptr<section> subsec = cur.subsection();
@@ -274,7 +264,8 @@ compilation_unit::compilation_unit(const dwarf &file, section_offset offset)
         sub.skip_initial_length();
         uhalf version = sub.fixed<uhalf>();
         if (version < 2 || version > 4)
-                throw format_error("unknown compilation unit version " + std::to_string(version));
+            throw format_error("unknown compilation unit version " +
+                               std::to_string(version));
         // .debug_abbrev-relative offset of this unit's abbrevs
         section_offset debug_abbrev_offset = sub.offset();
         ubyte address_size = sub.fixed<ubyte>();
@@ -282,39 +273,37 @@ compilation_unit::compilation_unit(const dwarf &file, section_offset offset)
 
         m = make_shared<impl>(file, offset, subsec, debug_abbrev_offset,
                               sub.get_section_offset());
-}
+    }
 
-const line_table &
-compilation_unit::get_line_table() const
-{
+    const line_table &
+    compilation_unit::get_line_table() const {
         if (!m->lt.valid()) {
-                const die &d = root();
-                if (!d.has(DW_AT::stmt_list) || !d.has(DW_AT::name))
-                        goto done;
+            const die &d = root();
+            if (!d.has(DW_AT::stmt_list) || !d.has(DW_AT::name))
+                goto done;
 
-                shared_ptr<section> sec;
-                try {
-                        sec = m->file.get_section(section_type::line);
-                } catch (format_error &e) {
-                        goto done;
-                }
+            shared_ptr<section> sec;
+            try {
+                sec = m->file.get_section(section_type::line);
+            } catch (format_error &e) {
+                goto done;
+            }
 
-                auto comp_dir = d.has(DW_AT::comp_dir) ? at_comp_dir(d) : "";
-                
-                m->lt = line_table(sec, d[DW_AT::stmt_list].as_sec_offset(),
-                                   m->subsec->addr_size, comp_dir,
-                                   at_name(d));
+            auto comp_dir = d.has(DW_AT::comp_dir) ? at_comp_dir(d) : "";
+
+            m->lt = line_table(sec, d[DW_AT::stmt_list].as_sec_offset(),
+                               m->subsec->addr_size, comp_dir,
+                               at_name(d));
         }
-done:
+        done:
         return m->lt;
-}
+    }
 
 //////////////////////////////////////////////////////////////////
 // class type_unit
 //
 
-type_unit::type_unit(const dwarf &file, section_offset offset)
-{
+    type_unit::type_unit(const dwarf &file, section_offset offset) {
         // Read the type unit header (DWARF4 section 7.5.1.2)
         cursor cur(file.get_section(section_type::types), offset);
         std::shared_ptr<section> subsec = cur.subsection();
@@ -322,7 +311,8 @@ type_unit::type_unit(const dwarf &file, section_offset offset)
         sub.skip_initial_length();
         uhalf version = sub.fixed<uhalf>();
         if (version != 4)
-                throw format_error("unknown type unit version " + std::to_string(version));
+            throw format_error(
+                    "unknown type unit version " + std::to_string(version));
         // .debug_abbrev-relative offset of this unit's abbrevs
         section_offset debug_abbrev_offset = sub.offset();
         ubyte address_size = sub.fixed<ubyte>();
@@ -333,23 +323,21 @@ type_unit::type_unit(const dwarf &file, section_offset offset)
         m = make_shared<impl>(file, offset, subsec, debug_abbrev_offset,
                               sub.get_section_offset(), type_signature,
                               type_offset);
-}
+    }
 
-uint64_t
-type_unit::get_type_signature() const
-{
+    uint64_t
+    type_unit::get_type_signature() const {
         return m->type_signature;
-}
+    }
 
-const die &
-type_unit::type() const
-{
+    const die &
+    type_unit::type() const {
         if (!m->type.valid()) {
-                m->force_abbrevs();
-                m->type = die(this);
-                m->type.read(m->type_offset);
+            m->force_abbrevs();
+            m->type = die(this);
+            m->type.read(m->type_offset);
         }
         return m->type;
-}
+    }
 
 DWARFPP_END_NAMESPACE
