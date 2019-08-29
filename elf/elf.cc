@@ -295,6 +295,28 @@ section::as_symtab() const
                       m->f.get_section(get_hdr().link).as_strtab());
 }
 
+    std::vector<Elf_Rel<>>
+    section::get_rels() const {
+        if (m->hdr.type != sht::rel) {
+            throw section_type_mismatch("section not a REL type");
+        }
+
+        std::vector<Elf_Rel<>> result;
+        // TODO: Implement this
+        return result;
+    }
+
+    std::vector<Elf_Rela<>>
+    section::get_relas() const {
+        if (m->hdr.type != sht::rela) {
+            throw section_type_mismatch("section not a RELA type");
+        }
+
+        std::vector<Elf_Rela<>> result;
+        // TODO: Implement this
+        return result;
+    }
+
 //////////////////////////////////////////////////////////////////
 // class strtab
 //
