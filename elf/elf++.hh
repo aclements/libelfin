@@ -119,6 +119,8 @@ ELFPP_BEGIN_NAMESPACE
          */
         const section &get_section(unsigned index) const;
 
+        size_t get_symtab_entry_size() const;
+
     private:
         struct impl;
         std::shared_ptr<impl> m;
@@ -397,6 +399,10 @@ ELFPP_BEGIN_NAMESPACE
         bool valid() const {
             return !!m;
         }
+
+        /* Returns the symbol at the index provided, or raises
+         * an out_of_range if the index is too large */
+        sym get_sym(unsigned idx) const;
 
         class iterator {
             const elf f;

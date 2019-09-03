@@ -45,6 +45,9 @@ ELFPP_BEGIN_NAMESPACE
         struct pick {
             typedef t32 t;
         };
+
+        static const uint32_t R_SYM_SHIFT = 8;
+        static const uint32_t R_TYPE_MASK = 0xff;
     };
 
     struct Elf64 : ElfTypes {
@@ -65,6 +68,9 @@ ELFPP_BEGIN_NAMESPACE
         struct pick {
             typedef t64 t;
         };
+
+        static const uint32_t R_SYM_SHIFT = 32;
+        static const uint32_t R_TYPE_MASK = 0xffffffffL;
     };
 
 // Data encodings (ELF64 table 4)
@@ -266,14 +272,32 @@ ELFPP_BEGIN_NAMESPACE
         // the relocation must be made and the type of relocation to apply.
         // Relocation types are processor-specific.
         typename E::Word32_Xword64 info;
+
+        inline unsigned sym_idx() const {
+            return info >> E::R_SYM_SHIFT;
+        }
+
+        inline unsigned rel_type() const {
+            return info & E::R_TYPE_MASK;
+        }
+
+        static size_t size() {
+            return sizeof(typename E::Off) + sizeof(typename E::Word32_Xword64);
+        }
     };
 
 // Relocation Entry with addend
     template<typename E = Elf64, byte_order Order = byte_order::native>
     struct Elf_Rela : public Elf_Rel<E, Order> {
-        typename E::S_Word32_Xword64 addend;    // Specifies a constant addend used
-        // to compute the value to be
+        // Specifies a constant addend used to compute the value to be
         // stored into the relocatable field.
+        typename E::S_Word32_Xword64 addend;
+
+        static size_t size() {
+            return sizeof(typename E::Off) +
+            sizeof(typename E::Word32_Xword64) +
+            sizeof (typename E::S_Word32_Xword64);
+        }
     };
 
 // Section header (ELF32 figure 1-8, ELF64 figure 3)
