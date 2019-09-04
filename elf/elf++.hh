@@ -219,6 +219,59 @@ ELFPP_BEGIN_NAMESPACE
         std::shared_ptr<impl> m;
     };
 
+    /**
+ * @brief Rel entry
+ */
+    class rel {
+        Elf_Rel<> data;
+
+    public:
+        rel(void *d);
+
+        unsigned sym_idx() const {
+            return data.info >> data.R_SYM_SHIFT();
+        }
+
+        unsigned rel_type() const {
+            return data.info & data.R_TYPE_MASK();
+        }
+
+        size_t size() const {
+            return sizeof(data.info) + sizeof(data.offset);
+        }
+
+        const Elf_Rel<> &get_data() const {
+            return data;
+        }
+    };
+
+    /**
+     * @brief Rela entry
+     */
+    class rela {
+        Elf_Rela<> data;
+
+    public:
+        rela(void *d);
+
+        unsigned sym_idx() const {
+            return data.info >> data.R_SYM_SHIFT();
+        }
+
+        unsigned rel_type() const {
+            return data.info & data.R_TYPE_MASK();
+        }
+
+        size_t size() const {
+            return sizeof(data.info) + sizeof(data.offset) +
+                   sizeof(data.addend);
+        }
+
+        const Elf_Rela<> &get_data() const {
+            return data;
+        }
+    };
+
 /**
  * An ELF section.
  *
@@ -294,13 +347,13 @@ ELFPP_BEGIN_NAMESPACE
          * @brief Return list of REL entries.
          * @throws section_type_mismatch if this section is not of type REL
          */
-        std::vector<Elf_Rel<>> get_rels() const;
+        std::vector<rel> get_rels() const;
 
         /**
         * @brief Return list of RELA entries.
         * @throws section_type_mismatch if this section is not of type RELA
         */
-        std::vector<Elf_Rela<>> get_relas() const;
+        std::vector<rela> get_relas() const;
 
     private:
         struct impl;
@@ -462,7 +515,6 @@ ELFPP_BEGIN_NAMESPACE
         struct impl;
         std::shared_ptr<impl> m;
     };
-
 
 ELFPP_END_NAMESPACE
 

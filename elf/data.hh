@@ -273,17 +273,9 @@ ELFPP_BEGIN_NAMESPACE
         // Relocation types are processor-specific.
         typename E::Word32_Xword64 info;
 
-        inline unsigned sym_idx() const {
-            return info >> E::R_SYM_SHIFT;
-        }
+        inline uint32_t R_SYM_SHIFT() const { return E::R_SYM_SHIFT; }
 
-        inline unsigned rel_type() const {
-            return info & E::R_TYPE_MASK;
-        }
-
-        static size_t size() {
-            return sizeof(typename E::Off) + sizeof(typename E::Word32_Xword64);
-        }
+        inline uint32_t R_TYPE_MASK() const { return E::R_TYPE_MASK; }
     };
 
 // Relocation Entry with addend
@@ -292,12 +284,6 @@ ELFPP_BEGIN_NAMESPACE
         // Specifies a constant addend used to compute the value to be
         // stored into the relocatable field.
         typename E::S_Word32_Xword64 addend;
-
-        static size_t size() {
-            return sizeof(typename E::Off) +
-            sizeof(typename E::Word32_Xword64) +
-            sizeof (typename E::S_Word32_Xword64);
-        }
     };
 
 // Section header (ELF32 figure 1-8, ELF64 figure 3)
