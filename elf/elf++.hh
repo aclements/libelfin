@@ -80,6 +80,10 @@ ELFPP_BEGIN_NAMESPACE
 
         elf &operator=(const elf &o) = default;
 
+        friend bool operator==(const elf &a, const elf &b);
+
+        friend bool operator!=(const elf &a, const elf &b);
+
         bool valid() const {
             return !!m;
         }
@@ -123,6 +127,11 @@ ELFPP_BEGIN_NAMESPACE
          */
         const section &get_section(unsigned index) const;
 
+        /**
+         * @brief Returns the size in bytes each symbol table entry takes up
+         * in this ELF file
+         * @return
+         */
         size_t get_symtab_entry_size() const;
 
     private:
@@ -520,6 +529,14 @@ ELFPP_BEGIN_NAMESPACE
          * @return
          */
         const elf &get_elf() const;
+
+        friend bool operator==(const sym &a, const sym &b);
+
+        friend bool operator!=(const sym &a, const sym &b);
+
+        friend bool operator<(const sym &a, const sym &b);
+
+        friend bool operator>(const sym &a, const sym &b);
     };
 
 /**

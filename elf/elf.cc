@@ -159,6 +159,14 @@ ELFPP_BEGIN_NAMESPACE
             return sizeof(Sym<Elf64>);
     }
 
+    bool operator==(const elf &a, const elf &b) {
+        return a.get_loader() == b.get_loader();
+    }
+
+    bool operator!=(const elf &a, const elf &b) {
+        return a.get_loader() != b.get_loader();
+    }
+
 //////////////////////////////////////////////////////////////////
 // class segment
 //
@@ -387,6 +395,24 @@ ELFPP_BEGIN_NAMESPACE
         return strs.get_elf();
     }
 
+    bool operator==(const sym &a, const sym &b) {
+        return (a.get_name() == b.get_name() &&
+                a.get_data().binding() != stb::local &&
+                a.get_data().binding() != stb::local
+        );
+    }
+
+    bool operator!=(const sym &a, const sym &b) {
+        return !(a == b);
+    }
+
+    bool operator<(const sym &a, const sym &b) {
+        return (a.get_name() < b.get_name());
+    }
+
+    bool operator>(const sym &a, const sym &b) {
+        return (a.get_name() > b.get_name());
+    }
 
 //////////////////////////////////////////////////////////////////
 // class rela
@@ -432,7 +458,7 @@ ELFPP_BEGIN_NAMESPACE
     }
 
     sym symtab::get_sym(unsigned idx) const {
-        size_t entry_size = m->f.get_symtab_entry_size();
+        size_t entry_size = get_elf().get_symtab_entry_size();
 
         if (m->data + idx * entry_size >= m->end) {
             std::stringstream err;
