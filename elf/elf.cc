@@ -175,7 +175,7 @@ ELFPP_BEGIN_NAMESPACE
     };
 
     segment::segment(const elf &f, const void *hdr)
-            : m(make_shared<impl>(f)) {
+            : m(make_shared<impl>(f)), f(f) {
         canon_hdr(&m->hdr, hdr, f.get_hdr().ei_class, f.get_hdr().ei_data);
     }
 
@@ -229,7 +229,7 @@ ELFPP_BEGIN_NAMESPACE
     };
 
     section::section(const elf &f, const void *hdr)
-            : m(make_shared<impl>(f)) {
+            : m(make_shared<impl>(f)), f(f) {
         canon_hdr(&m->hdr, hdr, f.get_hdr().ei_class, f.get_hdr().ei_data);
     }
 
@@ -293,7 +293,7 @@ ELFPP_BEGIN_NAMESPACE
         uintptr_t curr = (uintptr_t) data();
         uintptr_t end = (uintptr_t) ((uintptr_t) data() + size());
         while (curr < end) {
-            rel rel_entry((void *) curr);
+            rel rel_entry((void *) curr, *this);
             result.emplace_back(rel_entry);
             curr += rel_entry.size();
         }
@@ -311,7 +311,7 @@ ELFPP_BEGIN_NAMESPACE
         uintptr_t curr = (uintptr_t) data();
         uintptr_t end = (uintptr_t) ((uintptr_t) data() + size());
         while (curr < end) {
-            rela rela_entry((void *) curr);
+            rela rela_entry((void *) curr, *this);
             result.emplace_back(rela_entry);
             curr += rela_entry.size();
         }
@@ -360,6 +360,10 @@ ELFPP_BEGIN_NAMESPACE
         return get(offset, nullptr);
     }
 
+    const elf &strtab::get_elf() const {
+        return m->f;
+    }
+
 //////////////////////////////////////////////////////////////////
 // class sym
 //
@@ -379,11 +383,16 @@ ELFPP_BEGIN_NAMESPACE
         return strs.get(get_data().name);
     }
 
+    const elf &sym::get_elf() const {
+        return strs.get_elf();
+    }
+
+
 //////////////////////////////////////////////////////////////////
 // class rela
 //
-    rela::rela(void *d) :
-            data() {
+    rela::rela(void *d, const section &s) :
+            data(), s(s) {
         std::memcpy(&data.offset, d, sizeof(data.offset));
         std::memcpy(&data.info, (void *) ((char *) d + sizeof(data.offset)),
                     sizeof(data.info));
@@ -396,12 +405,11 @@ ELFPP_BEGIN_NAMESPACE
 // class rel
 //
 
-    rel::rel(void *d) :
-            data() {
+    rel::rel(void *d, const section &s) :
+            data(), s(s) {
         std::memcpy(&data.offset, d, sizeof(data.offset));
         std::memcpy(&data.info, (void *) ((char *) d + sizeof(data.offset)),
                     sizeof(data.info));
-
     }
 
 //////////////////////////////////////////////////////////////////
@@ -448,6 +456,10 @@ ELFPP_BEGIN_NAMESPACE
     symtab::iterator
     symtab::end() const {
         return iterator(*this, m->end);
+    }
+
+    const elf &symtab::get_elf() const {
+        return m->f;
     }
 
 ELFPP_END_NAMESPACE

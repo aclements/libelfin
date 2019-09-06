@@ -26,6 +26,10 @@ ELFPP_BEGIN_NAMESPACE
     class symtab;
 
     class segment;
+
+    class rel;
+
+    class rela;
 // XXX Audit for binary compatibility
 
 // XXX Segments, other section types
@@ -214,62 +218,18 @@ ELFPP_BEGIN_NAMESPACE
          */
         size_t mem_size() const;
 
+        /**
+         * @brief Returns the ELF object containing this segment
+         * @return
+         */
+        const elf &get_elf() const {
+            return f;
+        };
+
     private:
         struct impl;
         std::shared_ptr<impl> m;
-    };
-
-    /**
- * @brief Rel entry
- */
-    class rel {
-        Elf_Rel<> data;
-
-    public:
-        rel(void *d);
-
-        unsigned sym_idx() const {
-            return data.info >> data.R_SYM_SHIFT();
-        }
-
-        unsigned rel_type() const {
-            return data.info & data.R_TYPE_MASK();
-        }
-
-        size_t size() const {
-            return sizeof(data.info) + sizeof(data.offset);
-        }
-
-        const Elf_Rel<> &get_data() const {
-            return data;
-        }
-    };
-
-    /**
-     * @brief Rela entry
-     */
-    class rela {
-        Elf_Rela<> data;
-
-    public:
-        rela(void *d);
-
-        unsigned sym_idx() const {
-            return data.info >> data.R_SYM_SHIFT();
-        }
-
-        unsigned rel_type() const {
-            return data.info & data.R_TYPE_MASK();
-        }
-
-        size_t size() const {
-            return sizeof(data.info) + sizeof(data.offset) +
-                   sizeof(data.addend);
-        }
-
-        const Elf_Rela<> &get_data() const {
-            return data;
-        }
+        const elf f;
     };
 
 /**
@@ -355,9 +315,127 @@ ELFPP_BEGIN_NAMESPACE
         */
         std::vector<rela> get_relas() const;
 
+        /**
+         * @brief Returns the ELF object containing this section
+         * @return
+         */
+        const elf &get_elf() const {
+            return f;
+        };
+
     private:
         struct impl;
         std::shared_ptr<impl> m;
+        const elf f;
+    };
+
+/**
+* @brief Rel entry
+*/
+    class rel {
+    public:
+        rel(void *d, const section &s);
+
+        /**
+         * @brief Returns the index in symbol table this relocation references
+         * @return
+         */
+        unsigned sym_idx() const {
+            return data.info >> data.R_SYM_SHIFT();
+        }
+
+        /**
+         * @brief Returns the relocation type for this relocation. Note, these
+         * are processor dependent
+         * @return
+         */
+        unsigned rel_type() const {
+            return data.info & data.R_TYPE_MASK();
+        }
+
+        /**
+         * @brief Returns the size in bytes this relocation entry takes up in
+         * the ELF file
+         * @return
+         */
+        size_t size() const {
+            return sizeof(data.info) + sizeof(data.offset);
+        }
+
+        /**
+         * @brief Returns the raw data this entry contains
+         * @return
+         */
+        const Elf_Rel<> &get_data() const {
+            return data;
+        }
+
+        /**
+         * @brief Returns the section this relocation entry resides in
+         * @return
+         */
+        const section &get_section() const {
+            return s;
+        }
+
+    private:
+        Elf_Rel<> data;
+        const section s;
+    };
+
+    /**
+    * @brief Rela entry
+    */
+    class rela {
+    public:
+        rela(void *d, const section &s);
+
+        /**
+        * @brief Returns the index in symbol table this relocation references
+        * @return
+        */
+        unsigned sym_idx() const {
+            return data.info >> data.R_SYM_SHIFT();
+        }
+
+        /**
+         * @brief Returns the relocation type for this relocation. Note, these
+         * are processor dependent
+         * @return
+         */
+        unsigned rel_type() const {
+            return data.info & data.R_TYPE_MASK();
+        }
+
+        /**
+        * @brief Returns the size in bytes this relocation entry takes up in
+        * the ELF file
+        * @return
+        */
+        size_t size() const {
+            return sizeof(data.info) + sizeof(data.offset) +
+                   sizeof(data.addend);
+        }
+
+        /**
+        * @brief Returns the raw data this entry contains
+        * @return
+        */
+        const Elf_Rela<> &get_data() const {
+            return data;
+        }
+
+        /**
+         * @brief Returns the section this relocation entry resides in
+         * @return
+         */
+        const section &get_section() const {
+            return s;
+        }
+
+    private:
+        Elf_Rela<> data;
+        const section s;
     };
 
 /**
@@ -395,6 +473,12 @@ ELFPP_BEGIN_NAMESPACE
          */
         std::string get(Elf64::Off offset) const;
 
+        /**
+         * @brief Returns the elf object containing this string table
+         * @return
+         */
+        const elf &get_elf() const;
+
     private:
         struct impl;
         std::shared_ptr<impl> m;
@@ -430,6 +514,12 @@ ELFPP_BEGIN_NAMESPACE
          * Return this symbol's name as a string.
          */
         std::string get_name() const;
+
+        /**
+         * @brief Returns the elf object containing this symbol
+         * @return
+         */
+        const elf &get_elf() const;
     };
 
 /**
@@ -510,6 +600,8 @@ ELFPP_BEGIN_NAMESPACE
          * Return an iterator just past the last symbol.
          */
         iterator end() const;
+
+        const elf &get_elf() const;
 
     private:
         struct impl;
