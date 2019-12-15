@@ -23,22 +23,32 @@
 DWARFPP_BEGIN_NAMESPACE
 
 // Forward declarations
-class dwarf;
-class loader;
-class compilation_unit;
-class type_unit;
-class die;
-class value;
-class expr;
-class expr_context;
-class expr_result;
-class rangelist;
-class line_table;
+    class dwarf;
+
+    class loader;
+
+    class compilation_unit;
+
+    class type_unit;
+
+    class die;
+
+    class value;
+
+    class expr;
+
+    class expr_context;
+
+    class expr_result;
+
+    class rangelist;
+
+    class line_table;
 
 // Internal type forward-declarations
-struct section;
-struct abbrev_entry;
-struct cursor;
+    struct section;
+    struct abbrev_entry;
+    struct cursor;
 
 // XXX Audit for binary-compatibility
 
@@ -65,21 +75,20 @@ struct cursor;
 /**
  * An exception indicating malformed DWARF data.
  */
-class format_error : public std::runtime_error
-{
-public:
+    class format_error : public std::runtime_error {
+    public:
         explicit format_error(const std::string &what_arg)
-                : std::runtime_error(what_arg) { }
+                : std::runtime_error(what_arg) {}
+
         explicit format_error(const char *what_arg)
-                : std::runtime_error(what_arg) { }
-};
+                : std::runtime_error(what_arg) {}
+    };
 
 /**
  * DWARF section types.  These correspond to the names of ELF
  * sections, though DWARF can be embedded in other formats.
  */
-enum class section_type
-{
+    enum class section_type {
         abbrev,
         aranges,
         frame,
@@ -92,10 +101,10 @@ enum class section_type
         ranges,
         str,
         types,
-};
+    };
 
-std::string
-to_string(section_type v);
+    std::string
+    to_string(section_type v);
 
 /**
  * A DWARF file.  This class is internally reference counted and can
@@ -105,9 +114,8 @@ to_string(section_type v);
  * responsible for keeping this object live as long as any retrieved
  * object may be in use.
  */
-class dwarf
-{
-public:
+    class dwarf {
+    public:
         /**
          * Construct a DWARF file that is backed by sections read from
          * the given loader.
@@ -118,30 +126,31 @@ public:
          * Construct a DWARF file that is initially not valid.
          */
         dwarf() = default;
-        dwarf(const dwarf&) = default;
-        dwarf(dwarf&&) = default;
+
+        dwarf(const dwarf &) = default;
+
+        dwarf(dwarf &&) = default;
+
         ~dwarf();
 
-        dwarf& operator=(const dwarf &o) = default;
-        dwarf& operator=(dwarf &&o) = default;
+        dwarf &operator=(const dwarf &o) = default;
 
-        bool operator==(const dwarf &o) const
-        {
-                return m == o.m;
+        dwarf &operator=(dwarf &&o) = default;
+
+        bool operator==(const dwarf &o) const {
+            return m == o.m;
         }
 
-        bool operator!=(const dwarf &o) const
-        {
-                return m != o.m;
+        bool operator!=(const dwarf &o) const {
+            return m != o.m;
         }
 
         /**
          * Return true if this object represents a DWARF file.
          * Default constructed dwarf objects are not valid.
          */
-        bool valid() const
-        {
-                return !!m;
+        bool valid() const {
+            return !!m;
         }
 
         // XXX This allows the compilation units to be modified and
@@ -165,18 +174,17 @@ public:
          */
         std::shared_ptr<section> get_section(section_type type) const;
 
-private:
+    private:
         struct impl;
         std::shared_ptr<impl> m;
-};
+    };
 
 /**
  * An interface for lazily loading DWARF sections.
  */
-class loader
-{
-public:
-        virtual ~loader() { }
+    class loader {
+    public:
+        virtual ~loader() {}
 
         /**
          * Load the requested DWARF section into memory and return a
@@ -187,35 +195,31 @@ public:
          * any reason, this should throw an exception.
          */
         virtual const void *load(section_type section, size_t *size_out) = 0;
-};
+    };
 
 /**
  * The base class for a compilation unit or type unit within a DWARF
  * file.  A unit consists of a rooted tree of DIEs, plus additional
  * metadata that depends on the type of unit.
  */
-class unit
-{
-public:
+    class unit {
+    public:
         virtual ~unit() = 0;
 
-        bool operator==(const unit &o) const
-        {
-                return m == o.m;
+        bool operator==(const unit &o) const {
+            return m == o.m;
         }
 
-        bool operator!=(const unit &o) const
-        {
-                return m != o.m;
+        bool operator!=(const unit &o) const {
+            return m != o.m;
         }
 
         /**
          * Return true if this object is valid.  Default constructed
          * unit objects are not valid.
          */
-        bool valid() const
-        {
-                return !!m;
+        bool valid() const {
+            return !!m;
         }
 
         /**
@@ -247,26 +251,28 @@ public:
          */
         const abbrev_entry &get_abbrev(std::uint64_t acode) const;
 
-protected:
+    protected:
         friend struct ::std::hash<unit>;
         struct impl;
         std::shared_ptr<impl> m;
-};
+    };
 
 /**
  * A compilation unit within a DWARF file.  Most of the information
  * in a DWARF file is divided up by compilation unit.  This class is
  * internally reference counted and can be efficiently copied.
  */
-class compilation_unit : public unit
-{
-public:
+    class compilation_unit : public unit {
+    public:
         compilation_unit() = default;
+
         compilation_unit(const compilation_unit &o) = default;
+
         compilation_unit(compilation_unit &&o) = default;
 
-        compilation_unit& operator=(const compilation_unit &o) = default;
-        compilation_unit& operator=(compilation_unit &&o) = default;
+        compilation_unit &operator=(const compilation_unit &o) = default;
+
+        compilation_unit &operator=(compilation_unit &&o) = default;
 
         /**
          * \internal Construct a compilation unit whose header begins
@@ -280,20 +286,22 @@ public:
          * table.
          */
         const line_table &get_line_table() const;
-};
+    };
 
 /**
  * A type unit.  Type units allow complex type information to be
  * shared between compilation units.
  */
-class type_unit : public unit
-{
-public:
+    class type_unit : public unit {
+    public:
         type_unit() = default;
+
         type_unit(const type_unit &o) = default;
+
         type_unit(type_unit &&o) = default;
 
         type_unit &operator=(const type_unit &o) = default;
+
         type_unit &operator=(type_unit &&o) = default;
 
         /**
@@ -319,7 +327,7 @@ public:
          * nested in namespaces or other structures.
          */
         const die &type() const;
-};
+    };
 
 //////////////////////////////////////////////////////////////////
 // Debugging information entries (DIEs)
@@ -329,31 +337,32 @@ public:
  * A Debugging Information Entry, or DIE.  The basic unit of
  * information in a DWARF file.
  */
-class die
-{
+    class die {
         // XXX Make this class better for use in maps.  Currently dies
         // are fairly big and expensive to copy, but most of that
         // information can be constructed lazily.  This is also bad
         // for use in caches since it will keep the DWARF file alive.
         // OTOH, maybe caches need eviction anyway.
-public:
+    public:
         DW_TAG tag;
 
-        die() : cu(nullptr), abbrev(nullptr) { }
+        die() : cu(nullptr), abbrev(nullptr) {}
+
         die(const die &o) = default;
+
         die(die &&o) = default;
 
-        die& operator=(const die &o) = default;
-        die& operator=(die &&o) = default;
+        die &operator=(const die &o) = default;
+
+        die &operator=(die &&o) = default;
 
         /**
          * Return true if this object represents a DIE in a DWARF
          * file.  Default constructed objects are not valid and some
          * methods return invalid DIEs to indicate failures.
          */
-        bool valid() const
-        {
-                return abbrev != nullptr;
+        bool valid() const {
+            return abbrev != nullptr;
         }
 
         /**
@@ -364,9 +373,8 @@ public:
         /**
          * Return this DIE's byte offset within its compilation unit.
          */
-        section_offset get_unit_offset() const
-        {
-                return offset;
+        section_offset get_unit_offset() const {
+            return offset;
         }
 
         /**
@@ -409,6 +417,7 @@ public:
          * iteration, you must copy it.
          */
         iterator begin() const;
+
         iterator end() const;
 
         /**
@@ -417,12 +426,16 @@ public:
         const std::vector<std::pair<DW_AT, value> > attributes() const;
 
         bool operator==(const die &o) const;
+
         bool operator!=(const die &o) const;
 
-private:
+    private:
         friend class unit;
+
         friend class type_unit;
+
         friend class value;
+
         // XXX If we can get the CU, we don't need this
         friend struct ::std::hash<die>;
 
@@ -447,79 +460,77 @@ private:
          * Read this DIE from the given offset in cu.
          */
         void read(section_offset off);
-};
+    };
 
 /**
  * An iterator over a sequence of sibling DIEs.
  */
-class die::iterator
-{
-public:
+    class die::iterator {
+    public:
         iterator() = default;
+
         iterator(const iterator &o) = default;
+
         iterator(iterator &&o) = default;
 
-        iterator& operator=(const iterator &o) = default;
-        iterator& operator=(iterator &&o) = default;
+        iterator &operator=(const iterator &o) = default;
 
-        const die &operator*() const
-        {
-                return d;
+        iterator &operator=(iterator &&o) = default;
+
+        const die &operator*() const {
+            return d;
         }
 
-        const die *operator->() const
-        {
-                return &d;
+        const die *operator->() const {
+            return &d;
         }
 
         // XXX Make this less confusing by implementing operator== instead
-        bool operator!=(const iterator &o) const
-        {
-                // Quick test of abbrevs.  In particular, this weeds
-                // out non-end against end, which is a common
-                // comparison while iterating, though it also weeds
-                // out many other things.
-                if (d.abbrev != o.d.abbrev)
-                        return true;
+        bool operator!=(const iterator &o) const {
+            // Quick test of abbrevs.  In particular, this weeds
+            // out non-end against end, which is a common
+            // comparison while iterating, though it also weeds
+            // out many other things.
+            if (d.abbrev != o.d.abbrev)
+                return true;
 
-                // Same, possibly NULL abbrev.  If abbrev is NULL,
-                // then next's are uncomparable, so we need to stop
-                // now.  We consider all ends to be the same, without
-                // comparing cu's.
-                if (d.abbrev == nullptr)
-                        return false;
+            // Same, possibly NULL abbrev.  If abbrev is NULL,
+            // then next's are uncomparable, so we need to stop
+            // now.  We consider all ends to be the same, without
+            // comparing cu's.
+            if (d.abbrev == nullptr)
+                return false;
 
-                // Comparing two non-end abbrevs.
-                return d.next != o.d.next || d.cu != o.d.cu;
+            // Comparing two non-end abbrevs.
+            return d.next != o.d.next || d.cu != o.d.cu;
         }
 
         iterator &operator++();
 
-private:
+    private:
         friend class die;
 
         iterator(const unit *cu, section_offset off);
 
         die d;
-};
+    };
 
-inline die::iterator
-die::end() const
-{
+    inline die::iterator
+    die::end() const {
         return iterator();
-}
+    }
 
 /**
  * An exception indicating that a value is not of the requested type.
  */
-class value_type_mismatch : public std::logic_error
-{
-public:
+    class value_type_mismatch : public std::logic_error {
+    public:
         explicit value_type_mismatch(const std::string &what_arg)
-                : std::logic_error(what_arg) { }
+                : std::logic_error(what_arg) {}
+
         explicit value_type_mismatch(const char *what_arg)
-                : std::logic_error(what_arg) { }
-};
+                : std::logic_error(what_arg) {}
+    };
 
 /**
  * The value of a DIE attribute.
@@ -543,54 +554,52 @@ public:
  * require additional context from the compilation unit).  Use
  * compilation_unit::get_line_table instead.
  */
-class value
-{
-public:
-        enum class type
-        {
-                invalid,
-                address,
-                block,
-                constant,
-                uconstant,
-                sconstant,
-                exprloc,
-                flag,
-                line,
-                loclist,
-                mac,
-                rangelist,
-                reference,
-                string
+    class value {
+    public:
+        enum class type {
+            invalid,
+            address,
+            block,
+            constant,
+            uconstant,
+            sconstant,
+            exprloc,
+            flag,
+            line,
+            loclist,
+            mac,
+            rangelist,
+            reference,
+            string
         };
 
         /**
          * Construct a value with type `type::invalid`.
          */
-        value() : cu(nullptr), typ(type::invalid) { }
+        value() : cu(nullptr), typ(type::invalid) {}
 
         value(const value &o) = default;
+
         value(value &&o) = default;
 
-        value& operator=(const value &o) = default;
-        value& operator=(value &&o) = default;
+        value &operator=(const value &o) = default;
+
+        value &operator=(value &&o) = default;
 
         /**
          * Return true if this object represents a valid value.
          * Default constructed line tables are not valid.
          */
-        bool valid() const
-        {
-                return typ != type::invalid;
+        bool valid() const {
+            return typ != type::invalid;
         }
 
         /**
          * Return this value's byte offset within its compilation
          * unit.
          */
-        section_offset get_unit_offset() const
-        {
-                return offset;
+        section_offset get_unit_offset() const {
+            return offset;
         }
 
         /**
@@ -598,9 +607,8 @@ public:
          */
         section_offset get_section_offset() const;
 
-        type get_type() const
-        {
-                return typ;
+        type get_type() const {
+            return typ;
         }
 
         /**
@@ -610,9 +618,8 @@ public:
          * types is non-trivial and often depends on the attribute
          * (especially prior to DWARF 4).
          */
-        DW_FORM get_form() const
-        {
-                return form;
+        DW_FORM get_form() const {
+            return form;
         }
 
         /**
@@ -701,7 +708,7 @@ public:
          */
         section_offset as_sec_offset() const;
 
-private:
+    private:
         friend class die;
 
         value(const unit *cu,
@@ -713,13 +720,13 @@ private:
         DW_FORM form;
         type typ;
         section_offset offset;
-};
+    };
 
-std::string
-to_string(value::type v);
+    std::string
+    to_string(value::type v);
 
-std::string
-to_string(const value &v);
+    std::string
+    to_string(const value &v);
 
 //////////////////////////////////////////////////////////////////
 // Expressions and location descriptions
@@ -728,21 +735,20 @@ to_string(const value &v);
 /**
  * An exception during expression evaluation.
  */
-class expr_error : public std::runtime_error
-{
-public:
+    class expr_error : public std::runtime_error {
+    public:
         explicit expr_error(const std::string &what_arg)
-                : std::runtime_error(what_arg) { }
+                : std::runtime_error(what_arg) {}
+
         explicit expr_error(const char *what_arg)
-                : std::runtime_error(what_arg) { }
-};
+                : std::runtime_error(what_arg) {}
+    };
 
 /**
  * A DWARF expression or location description.
  */
-class expr
-{
-public:
+    class expr {
+    public:
         /**
          * Short-hand for evaluate(ctx, {}).
          */
@@ -764,9 +770,10 @@ public:
          * expression (such as an unknown operation, stack underflow,
          * bounds error, etc.)
          */
-        expr_result evaluate(expr_context *ctx, const std::initializer_list<taddr> &arguments) const;
+        expr_result evaluate(expr_context *ctx,
+                             const std::initializer_list<taddr> &arguments) const;
 
-private:
+    private:
         // XXX This will need more information for some operations
         expr(const unit *cu,
              section_offset offset, section_length len);
@@ -776,7 +783,7 @@ private:
         const unit *cu;
         section_offset offset;
         section_length len;
-};
+    };
 
 /**
  * An interface that provides contextual information for expression
@@ -785,87 +792,81 @@ private:
  * evaluation engine.  The default implementation throws expr_error
  * for all methods.
  */
-class expr_context
-{
-public:
-        virtual ~expr_context() { }
+    class expr_context {
+    public:
+        virtual ~expr_context() {}
 
         /**
          * Return the value stored in register regnum.  This is used
          * to implement DW_OP_breg* operations.
          */
-        virtual taddr reg(unsigned regnum)
-        {
-                throw expr_error("DW_OP_breg* operations not supported");
+        virtual taddr reg(unsigned regnum) {
+            throw expr_error("DW_OP_breg* operations not supported");
         }
 
         /**
          * Implement DW_OP_deref_size.
          */
-        virtual taddr deref_size(taddr address, unsigned size)
-        {
-                throw expr_error("DW_OP_deref_size operations not supported");
+        virtual taddr deref_size(taddr address, unsigned size) {
+            throw expr_error("DW_OP_deref_size operations not supported");
         }
 
         /**
          * Implement DW_OP_xderef_size.
          */
-        virtual taddr xderef_size(taddr address, taddr asid, unsigned size)
-        {
-                throw expr_error("DW_OP_xderef_size operations not supported");
+        virtual taddr xderef_size(taddr address, taddr asid, unsigned size) {
+            throw expr_error("DW_OP_xderef_size operations not supported");
         }
 
         /**
          * Implement DW_OP_form_tls_address.
          */
-        virtual taddr form_tls_address(taddr address)
-        {
-                throw expr_error("DW_OP_form_tls_address operations not supported");
+        virtual taddr form_tls_address(taddr address) {
+            throw expr_error("DW_OP_form_tls_address operations not supported");
         }
-};
+    };
 
 /**
  * An instance of expr_context that throws expr_error for all methods.
  * This is equivalent to the default construction of expr_context, but
  * often more convenient to use.
  */
-extern expr_context no_expr_context;
+    extern expr_context no_expr_context;
 
 // XXX Provide methods to check type and fetch value?
 /**
  * The result of evaluating a DWARF expression or location
  * description.
  */
-class expr_result
-{
-public:
+    class expr_result {
+    public:
         enum class type {
-                /**
-                 * value specifies the address in memory of an object.
-                 * This is also the result type used for general
-                 * expressions that do not refer to object locations.
-                 */
-                address,
-                /**
-                 * value specifies a register storing an object.
-                 */
-                reg,
-                /**
-                 * The object does not have a location.  value is the
-                 * value of the object.
-                 */
-                literal,
-                /**
-                 * The object does not have a location.  Its value is
-                 * pointed to by the 'implicit' field.
-                 */
-                implicit,
-                /**
-                 * The object is present in the source, but not in the
-                 * object code, and hence does not have a location or
-                 * a value.
-                 */
-                empty,
+            /**
+             * value specifies the address in memory of an object.
+             * This is also the result type used for general
+             * expressions that do not refer to object locations.
+             */
+                    address,
+            /**
+             * value specifies a register storing an object.
+             */
+                    reg,
+            /**
+             * The object does not have a location.  value is the
+             * value of the object.
+             */
+                    literal,
+            /**
+             * The object does not have a location.  Its value is
+             * pointed to by the 'implicit' field.
+             */
+                    implicit,
+            /**
+             * The object is present in the source, but not in the
+             * object code, and hence does not have a location or
+             * a value.
+             */
+                    empty,
         };
 
         /**
@@ -892,10 +893,10 @@ public:
         size_t implicit_len;
 
         // XXX Composite locations
-};
+    };
 
-std::string
-to_string(expr_result::type v);
+    std::string
+    to_string(expr_result::type v);
 
 //////////////////////////////////////////////////////////////////
 // Range lists
@@ -905,9 +906,8 @@ to_string(expr_result::type v);
  * A DWARF range list describing a set of possibly non-contiguous
  * addresses.
  */
-class rangelist
-{
-public:
+    class rangelist {
+    public:
         /**
          * \internal Construct a range list whose data begins at the
          * given offset in sec.  cu_addr_size is the address size of
@@ -923,7 +923,8 @@ public:
          * Construct a range list from a sequence of {low, high}
          * pairs.
          */
-        rangelist(const std::initializer_list<std::pair<taddr, taddr> > &ranges);
+        rangelist(
+                const std::initializer_list<std::pair<taddr, taddr> > &ranges);
 
         /**
          * Construct an empty range list.
@@ -932,13 +933,16 @@ public:
 
         /** Copy constructor */
         rangelist(const rangelist &o) = default;
+
         /** Move constructor */
         rangelist(rangelist &&o) = default;
 
-        rangelist& operator=(const rangelist &o) = default;
-        rangelist& operator=(rangelist &&o) = default;
+        rangelist &operator=(const rangelist &o) = default;
+
+        rangelist &operator=(rangelist &&o) = default;
 
         class entry;
+
         typedef entry value_type;
 
         class iterator;
@@ -962,39 +966,36 @@ public:
          */
         bool contains(taddr addr) const;
 
-private:
+    private:
         std::vector<taddr> synthetic;
         std::shared_ptr<section> sec;
         taddr base_addr;
-};
+    };
 
 /**
  * An entry in a range list.  The range spans addresses [low, high).
  */
-class rangelist::entry
-{
-public:
+    class rangelist::entry {
+    public:
         taddr low, high;
 
         /**
          * Return true if addr is within this entry's bounds.
          */
-        bool contains(taddr addr) const
-        {
-                return low <= addr && addr < high;
+        bool contains(taddr addr) const {
+            return low <= addr && addr < high;
         }
-};
+    };
 
 /**
  * An iterator over a sequence of ranges in a range list.
  */
-class rangelist::iterator
-{
-public:
+    class rangelist::iterator {
+    public:
         /**
          * \internal Construct an end iterator.
          */
-        iterator() : sec(nullptr), base_addr(0), pos(0) { }
+        iterator() : sec(nullptr), base_addr(0), pos(0) {}
 
         /**
          * \internal Construct an iterator that reads rangelist data
@@ -1005,38 +1006,36 @@ public:
 
         /** Copy constructor */
         iterator(const iterator &o) = default;
+
         /** Move constructor */
         iterator(iterator &&o) = default;
 
-        iterator& operator=(const iterator &o) = default;
-        iterator& operator=(iterator &&o) = default;
+        iterator &operator=(const iterator &o) = default;
+
+        iterator &operator=(iterator &&o) = default;
 
         /**
          * Return the current range list entry.  This entry is reused
          * internally, so the caller should copy it if it needs to
          * persist past the next increment.
          */
-        const rangelist::entry &operator*() const
-        {
-                return entry;
+        const rangelist::entry &operator*() const {
+            return entry;
         }
 
         /** Dereference operator */
-        const rangelist::entry *operator->() const
-        {
-                return &entry;
+        const rangelist::entry *operator->() const {
+            return &entry;
         }
 
         /** Equality operator */
-        bool operator==(const iterator &o) const
-        {
-                return sec == o.sec && pos == o.pos;
+        bool operator==(const iterator &o) const {
+            return sec == o.sec && pos == o.pos;
         }
 
         /** Inequality operator */
-        bool operator!=(const iterator &o) const
-        {
-                return !(*this == o);
+        bool operator!=(const iterator &o) const {
+            return !(*this == o);
         }
 
         /**
@@ -1045,12 +1044,12 @@ public:
          */
         iterator &operator++();
 
-private:
+    private:
         std::shared_ptr<section> sec;
         taddr base_addr;
         section_offset pos;
         rangelist::entry entry;
-};
+    };
 
 //////////////////////////////////////////////////////////////////
 // Line number tables
@@ -1067,9 +1066,8 @@ private:
  * also records the set of source files for a given compilation unit,
  * which can be referred to from other DIE attributes.
  */
-class line_table
-{
-public:
+    class line_table {
+    public:
         /**
          * \internal Construct a line number table whose header begins
          * at the given offset in sec.  cu_addr_size is the address
@@ -1088,23 +1086,26 @@ public:
 
         /** Copy constructor */
         line_table(const line_table &o) = default;
+
         /** Move constructor */
         line_table(line_table &&o) = default;
 
         line_table &operator=(const line_table &o) = default;
+
         line_table &operator=(line_table &&o) = default;
 
         /**
          * Return true if this object represents an initialized line
          * table.  Default constructed line tables are not valid.
          */
-        bool valid() const
-        {
-                return !!m;
+        bool valid() const {
+            return !!m;
         }
 
         class file;
+
         class entry;
+
         typedef entry value_type;
 
         class iterator;
@@ -1137,19 +1138,18 @@ public:
          */
         const file *get_file(unsigned index) const;
 
-private:
+    private:
         friend class iterator;
 
         struct impl;
         std::shared_ptr<impl> m;
-};
+    };
 
 /**
  * A source file in a line table.
  */
-class line_table::file
-{
-public:
+    class line_table::file {
+    public:
         /**
          * The absolute path of this source file.
          */
@@ -1170,14 +1170,13 @@ public:
          * Construct a source file object.
          */
         file(std::string path = "", uint64_t mtime = 0, uint64_t length = 0);
-};
+    };
 
 /**
  * An entry in the line table.
  */
-class line_table::entry
-{
-public:
+    class line_table::entry {
+    public:
         /**
          * The program counter value corresponding to a machine
          * instruction generated by the compiler.
@@ -1271,14 +1270,13 @@ public:
          * "filename[:line[:column]]".
          */
         std::string get_description() const;
-};
+    };
 
 /**
  * An iterator over the entries in a line table.
  */
-class line_table::iterator
-{
-public:
+    class line_table::iterator {
+    public:
         /**
          * \internal Construct an iterator for the given line table
          * starting pos bytes into the table's section.
@@ -1287,10 +1285,12 @@ public:
 
         /** Copy constructor */
         iterator(const iterator &o) = default;
+
         /** Move constructor */
         iterator(iterator &&o) = default;
 
         iterator &operator=(const iterator &o) = default;
+
         iterator &operator=(iterator &&o) = default;
 
         /**
@@ -1298,27 +1298,23 @@ public:
          * internally, so the caller should copy it if it needs to
          * persist past the next increment.
          */
-        const line_table::entry &operator*() const
-        {
-                return entry;
+        const line_table::entry &operator*() const {
+            return entry;
         }
 
         /** Dereference operator */
-        const line_table::entry *operator->() const
-        {
-                return &entry;
+        const line_table::entry *operator->() const {
+            return &entry;
         }
 
         /** Equality operator */
-        bool operator==(const iterator &o) const
-        {
-                return o.pos == pos && o.table == table;
+        bool operator==(const iterator &o) const {
+            return o.pos == pos && o.table == table;
         }
 
         /** Inequality operator */
-        bool operator!=(const iterator &o) const
-        {
-                return !(*this == o);
+        bool operator!=(const iterator &o) const {
+            return !(*this == o);
         }
 
         /**
@@ -1328,14 +1324,13 @@ public:
         iterator &operator++();
 
         /** Post-increment operator */
-        iterator operator++(int)
-        {
-                iterator tmp(*this);
-                ++(*this);
-                return tmp;
+        iterator operator++(int) {
+            iterator tmp(*this);
+            ++(*this);
+            return tmp;
         }
 
-private:
+    private:
         const line_table *table;
         line_table::entry entry, regs;
         section_offset pos;
@@ -1345,7 +1340,7 @@ private:
          * table", update entry to reflect the row and return true.
          */
         bool step(cursor *cur);
-};
+    };
 
 //////////////////////////////////////////////////////////////////
 // Type-safe attribute getters
@@ -1353,77 +1348,142 @@ private:
 
 // XXX More
 
-die at_abstract_origin(const die &d);
-DW_ACCESS at_accessibility(const die &d);
-uint64_t at_allocated(const die &d, expr_context *ctx);
-bool at_artificial(const die &d);
-uint64_t at_associated(const die &d, expr_context *ctx);
-uint64_t at_bit_offset(const die &d, expr_context *ctx);
-uint64_t at_bit_size(const die &d, expr_context *ctx);
-uint64_t at_bit_stride(const die &d, expr_context *ctx);
-uint64_t at_byte_size(const die &d, expr_context *ctx);
-uint64_t at_byte_stride(const die &d, expr_context *ctx);
-DW_CC at_calling_convention(const die &d);
-die at_common_reference(const die &d);
-std::string at_comp_dir(const die &d);
-value at_const_value(const die &d);
-bool at_const_expr(const die &d);
-die at_containing_type(const die &d);
-uint64_t at_count(const die &d, expr_context *ctx);
-expr_result at_data_member_location(const die &d, expr_context *ctx, taddr base, taddr pc);
-bool at_declaration(const die &d);
-std::string at_description(const die &d);
-die at_discr(const die &d);
-value at_discr_value(const die &d);
-bool at_elemental(const die &d);
-DW_ATE at_encoding(const die &d);
-DW_END at_endianity(const die &d);
-taddr at_entry_pc(const die &d);
-bool at_enum_class(const die &d);
-bool at_explicit(const die &d);
-die at_extension(const die &d);
-bool at_external(const die &d);
-die at_friend(const die &d);
-taddr at_high_pc(const die &d);
-DW_ID at_identifier_case(const die &d);
-die at_import(const die &d);
-DW_INL at_inline(const die &d);
-bool at_is_optional(const die &d);
-DW_LANG at_language(const die &d);
-std::string at_linkage_name(const die &d);
-taddr at_low_pc(const die &d);
-uint64_t at_lower_bound(const die &d, expr_context *ctx);
-bool at_main_subprogram(const die &d);
-bool at_mutable(const die &d);
-std::string at_name(const die &d);
-die at_namelist_item(const die &d);
-die at_object_pointer(const die &d);
-DW_ORD at_ordering(const die &d);
-std::string at_picture_string(const die &d);
-die at_priority(const die &d);
-std::string at_producer(const die &d);
-bool at_prototyped(const die &d);
-bool at_pure(const die &d);
-rangelist at_ranges(const die &d);
-bool at_recursive(const die &d);
-die at_sibling(const die &d);
-die at_signature(const die &d);
-die at_small(const die &d);
-die at_specification(const die &d);
-bool at_threads_scaled(const die &d);
-die at_type(const die &d);
-uint64_t at_upper_bound(const die &d, expr_context *ctx);
-bool at_use_UTF8(const die &d);
-bool at_variable_parameter(const die &d);
-DW_VIRTUALITY at_virtuality(const die &d);
-DW_VIS at_visibility(const die &d);
+    die at_abstract_origin(const die &d);
+
+    DW_ACCESS at_accessibility(const die &d);
+
+    uint64_t at_allocated(const die &d, expr_context *ctx);
+
+    bool at_artificial(const die &d);
+
+    uint64_t at_associated(const die &d, expr_context *ctx);
+
+    uint64_t at_bit_offset(const die &d, expr_context *ctx);
+
+    uint64_t at_bit_size(const die &d, expr_context *ctx);
+
+    uint64_t at_bit_stride(const die &d, expr_context *ctx);
+
+    uint64_t at_byte_size(const die &d, expr_context *ctx);
+
+    uint64_t at_byte_stride(const die &d, expr_context *ctx);
+
+    DW_CC at_calling_convention(const die &d);
+
+    die at_common_reference(const die &d);
+
+    std::string at_comp_dir(const die &d);
+
+    value at_const_value(const die &d);
+
+    bool at_const_expr(const die &d);
+
+    die at_containing_type(const die &d);
+
+    uint64_t at_count(const die &d, expr_context *ctx);
+
+    expr_result
+    at_data_member_location(const die &d, expr_context *ctx, taddr base,
+                            taddr pc);
+
+    bool at_declaration(const die &d);
+
+    std::string at_description(const die &d);
+
+    die at_discr(const die &d);
+
+    value at_discr_value(const die &d);
+
+    bool at_elemental(const die &d);
+
+    DW_ATE at_encoding(const die &d);
+
+    DW_END at_endianity(const die &d);
+
+    taddr at_entry_pc(const die &d);
+
+    bool at_enum_class(const die &d);
+
+    bool at_explicit(const die &d);
+
+    die at_extension(const die &d);
+
+    bool at_external(const die &d);
+
+    die at_friend(const die &d);
+
+    taddr at_high_pc(const die &d);
+
+    DW_ID at_identifier_case(const die &d);
+
+    die at_import(const die &d);
+
+    DW_INL at_inline(const die &d);
+
+    bool at_is_optional(const die &d);
+
+    DW_LANG at_language(const die &d);
+
+    std::string at_linkage_name(const die &d);
+
+    taddr at_low_pc(const die &d);
+
+    uint64_t at_lower_bound(const die &d, expr_context *ctx);
+
+    bool at_main_subprogram(const die &d);
+
+    bool at_mutable(const die &d);
+
+    std::string at_name(const die &d);
+
+    die at_namelist_item(const die &d);
+
+    die at_object_pointer(const die &d);
+
+    DW_ORD at_ordering(const die &d);
+
+    std::string at_picture_string(const die &d);
+
+    die at_priority(const die &d);
+
+    std::string at_producer(const die &d);
+
+    bool at_prototyped(const die &d);
+
+    bool at_pure(const die &d);
+
+    rangelist at_ranges(const die &d);
+
+    bool at_recursive(const die &d);
+
+    die at_sibling(const die &d);
+
+    die at_signature(const die &d);
+
+    die at_small(const die &d);
+
+    die at_specification(const die &d);
+
+    bool at_threads_scaled(const die &d);
+
+    die at_type(const die &d);
+
+    uint64_t at_upper_bound(const die &d, expr_context *ctx);
+
+    bool at_use_UTF8(const die &d);
+
+    bool at_variable_parameter(const die &d);
+
+    DW_VIRTUALITY at_virtuality(const die &d);
+
+    DW_VIS at_visibility(const die &d);
 
 /**
  * Return the PC range spanned by the code of a DIE.  The DIE must
  * either have DW_AT::ranges or DW_AT::low_pc.  It may optionally have
  * DW_AT::high_pc.
  */
-rangelist die_pc_range(const die &d);
+    rangelist die_pc_range(const die &d);
 
 //////////////////////////////////////////////////////////////////
 // Utilities
@@ -1433,9 +1493,8 @@ rangelist die_pc_range(const die &d);
  * An index of sibling DIEs by some string attribute.  This index is
  * lazily constructed and space-efficient.
  */
-class die_str_map
-{
-public:
+    class die_str_map {
+    public:
         /**
          * Construct the index of the attr attribute of all immediate
          * children of parent whose tags are in accept.
@@ -1444,11 +1503,14 @@ public:
                     const std::initializer_list<DW_TAG> &accept);
 
         die_str_map() = default;
+
         die_str_map(const die_str_map &o) = default;
+
         die_str_map(die_str_map &&o) = default;
 
-        die_str_map& operator=(const die_str_map &o) = default;
-        die_str_map& operator=(die_str_map &&o) = default;
+        die_str_map &operator=(const die_str_map &o) = default;
+
+        die_str_map &operator=(die_str_map &&o) = default;
 
         /**
          * Construct a string map for the type names of parent's
@@ -1468,22 +1530,20 @@ public:
         /**
          * Short-hand for [value.c_str()].
          */
-        const die &operator[](const std::string &val) const
-        {
-                return (*this)[val.c_str()];
+        const die &operator[](const std::string &val) const {
+            return (*this)[val.c_str()];
         }
 
-private:
+    private:
         struct impl;
         std::shared_ptr<impl> m;
-};
+    };
 
 //////////////////////////////////////////////////////////////////
 // ELF support
 //
 
-namespace elf
-{
+    namespace elf {
         /**
          * Translate an ELF section name info a DWARF section type.
          * If the section is a valid DWARF section name, sets *out to
@@ -1497,21 +1557,19 @@ namespace elf
         const char *section_type_to_name(section_type type);
 
         template<typename Elf>
-        class elf_loader : public loader
-        {
-                Elf f;
+        class elf_loader : public loader {
+            Elf f;
 
         public:
-                elf_loader(const Elf &file) : f(file) { }
+            elf_loader(const Elf &file) : f(file) {}
 
-                const void *load(section_type section, size_t *size_out)
-                {
-                        auto sec = f.get_section(section_type_to_name(section));
-                        if (!sec.valid())
-                                return nullptr;
-                        *size_out = sec.size();
-                        return sec.data();
-                }
+            const void *load(section_type section, size_t *size_out) {
+                auto sec = f.get_section(section_type_to_name(section));
+                if (!sec.valid())
+                    return nullptr;
+                *size_out = sec.size();
+                return sec.data();
+            }
         };
 
         /**
@@ -1521,11 +1579,10 @@ namespace elf
          * reasonably be used with elf::elf from libelf++.
          */
         template<typename Elf>
-        std::shared_ptr<elf_loader<Elf> > create_loader(const Elf &f)
-        {
-                return std::make_shared<elf_loader<Elf> >(f);
+        std::shared_ptr<elf_loader<Elf> > create_loader(const Elf &f) {
+            return std::make_shared<elf_loader<Elf> >(f);
         }
-};
+    };
 
 DWARFPP_END_NAMESPACE
 
@@ -1533,26 +1590,24 @@ DWARFPP_END_NAMESPACE
 // Hash specializations
 //
 
-namespace std
-{
-        template<>
-        struct hash<dwarf::unit>
-        {
-                typedef size_t result_type;
-                typedef const dwarf::unit &argument_type;
-                result_type operator()(argument_type a) const
-                {
-                        return hash<decltype(a.m)>()(a.m);
-                }
-        };
+namespace std {
+    template<>
+    struct hash<dwarf::unit> {
+        typedef size_t result_type;
+        typedef const dwarf::unit &argument_type;
 
-        template<>
-        struct hash<dwarf::die>
-        {
-                typedef size_t result_type;
-                typedef const dwarf::die &argument_type;
-                result_type operator()(argument_type a) const;
-        };
+        result_type operator()(argument_type a) const {
+            return hash<decltype(a.m)>()(a.m);
+        }
+    };
+
+    template<>
+    struct hash<dwarf::die> {
+        typedef size_t result_type;
+        typedef const dwarf::die &argument_type;
+
+        result_type operator()(argument_type a) const;
+    };
 }
 
 #endif

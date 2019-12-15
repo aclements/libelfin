@@ -5,17 +5,18 @@
 import sys, re
 from optparse import OptionParser
 
+
 def read_toks():
     data = sys.stdin.read()
     while data:
         data = data.lstrip()
         if data.startswith("//") or data.startswith("#"):
-            data = data.split("\n",1)[1]
+            data = data.split("\n", 1)[1]
         elif data.startswith("/*"):
-            data = data.split("*/",1)[1]
+            data = data.split("*/", 1)[1]
         elif data.startswith("\"") or data.startswith("'"):
             c = data[0]
-            m = re.match(r'%s([^\\%s]|\\.)*%s' % (c,c,c), data)
+            m = re.match(r'%s([^\\%s]|\\.)*%s' % (c, c, c), data)
             yield m.group(0)
             data = data[m.end():]
         else:
@@ -23,7 +24,9 @@ def read_toks():
             yield m.group(0)
             data = data[m.end():]
 
+
 enums = {}
+
 
 def do_top_level(toks, ns=[]):
     while toks:
@@ -67,6 +70,7 @@ def do_top_level(toks, ns=[]):
             else:
                 make_to_string(typ, arg)
 
+
 def fmt_value(typ, key):
     if options.no_type:
         val = key
@@ -76,11 +80,13 @@ def fmt_value(typ, key):
         val = val.strip("_")
     return val
 
+
 def expr_remainder(typ, arg):
     if options.hex:
         return "\"(%s)0x\" + to_hex((int)%s)" % (typ, arg)
     else:
         return "\"(%s)\" + std::to_string((int)%s)" % (typ, arg)
+
 
 def make_to_string(typ, arg):
     print("std::string")
@@ -92,11 +98,12 @@ def make_to_string(typ, arg):
             print("        case %s::%s: break;" % (typ, key))
             continue
         print("        case %s::%s: return \"%s\";" % \
-            (typ, key, fmt_value(typ, key)))
+              (typ, key, fmt_value(typ, key)))
     print("        }")
     print("        return %s;" % expr_remainder(typ, arg))
     print("}")
     print()
+
 
 def make_to_string_mask(typ, arg):
     print("std::string")
@@ -106,14 +113,17 @@ def make_to_string_mask(typ, arg):
     for key in enums[typ]:
         if key in options.exclude:
             continue
-        print("        if ((%s & %s::%s) == %s::%s) { res += \"%s|\"; %s &= ~%s::%s; }" % \
-            (arg, typ, key, typ, key, fmt_value(typ, key), arg, typ, key))
+        print(
+                "        if ((%s & %s::%s) == %s::%s) { res += \"%s|\"; %s &= ~%s::%s; }" % \
+                (arg, typ, key, typ, key, fmt_value(typ, key), arg, typ,
+                 key))
     print("        if (res.empty() || %s != (%s)0) res += %s;" % \
-        (arg, typ, expr_remainder(typ, arg)))
+          (arg, typ, expr_remainder(typ, arg)))
     print("        else res.pop_back();")
     print("        return res;")
     print("}")
     print()
+
 
 def do_enum_body(name, toks):
     keys = []
@@ -132,6 +142,7 @@ def do_enum_body(name, toks):
         else:
             assert toks[0] == "}"
 
+
 def do_qname(toks):
     # Get a nested-name-specifier followed by an identifier
     res = []
@@ -140,6 +151,7 @@ def do_qname(toks):
         if toks[0] != "::":
             return "::".join(res)
         toks.pop(0)
+
 
 parser = OptionParser()
 parser.add_option("-x", "--exclude", dest="exclude", action="append",
