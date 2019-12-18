@@ -58,14 +58,14 @@ CLEAN += libelf++.pc
 PREFIX?=/usr/local
 
 install: libelf++.a libelf++.so libelf++.so.$(SONAME) libelf++.pc
-	install -d $(PREFIX)/lib/pkgconfig
-	install -t $(PREFIX)/lib libelf++.a
-	install -t $(PREFIX)/lib libelf++.so.$(SONAME)
-	install -t $(PREFIX)/lib libelf++.so
-	install -d $(PREFIX)/include/libelfin/elf
-	install -t $(PREFIX)/include/libelfin/elf common.hh data.hh elf++.hh
+	install -d $(DESTDIR)$(PREFIX)/lib/pkgconfig
+	install -t $(DESTDIR)$(PREFIX)/lib libelf++.a
+	install -t $(DESTDIR)$(PREFIX)/lib libelf++.so.$(SONAME)
+	install -t $(DESTDIR)$(PREFIX)/lib libelf++.so
+	install -d $(DESTDIR)$(PREFIX)/include/libelfin/elf
+	install -t $(DESTDIR)$(PREFIX)/include/libelfin/elf common.hh data.hh elf++.hh
 	sed 's,^libdir=.*,libdir=$(PREFIX)/lib,;s,^includedir=.*,includedir=$(PREFIX)/include,' libelf++.pc \
-		> $(PREFIX)/lib/pkgconfig/libelf++.pc
+		> $(DESTDIR)$(PREFIX)/lib/pkgconfig/libelf++.pc
 
 clean:
 	rm -f $(CLEAN)
