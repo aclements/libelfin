@@ -1,3 +1,7 @@
+os: linux
+arch:
+ - amd64
+ - ppc64le
 sudo: required
 # The default environment is Ubuntu 12.04, which only has GCC 4.6.
 dist: trusty
