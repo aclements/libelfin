@@ -6,6 +6,7 @@
 
 #include <stdexcept>
 #include <cstring>
+#include <iterator>
 
 using namespace std;
 
@@ -86,7 +87,7 @@ cursor::string(std::string &out)
         size_t size;
         const char *p = this->cstr(&size);
         out.resize(size);
-        memmove(&out.front(), p, size);
+        out.assign(p, size);
 }
 
 const char *

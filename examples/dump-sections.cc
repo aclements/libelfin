@@ -6,6 +6,10 @@
 #include <fcntl.h>
 #include <inttypes.h>
 
+#if _WIN32
+#include <io.h>
+#endif
+
 int main(int argc, char **argv)
 {
         if (argc != 2) {

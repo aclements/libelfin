@@ -111,6 +111,11 @@ resolve_type(DW_AT name, DW_FORM form)
         case DW_FORM::sec_offset:
         sec_offset:
                 // The type of this form depends on the attribute
+                if (name >= DW_AT::lo_user && name <= DW_AT::hi_user)
+                {
+                        //HACK: ignore vendor extensions
+                        return value::type::invalid;
+                }
                 switch (name) {
                 case DW_AT::stmt_list:
                         return value::type::line;
@@ -132,10 +137,6 @@ resolve_type(DW_AT name, DW_FORM form)
                 case DW_AT::start_scope:
                 case DW_AT::ranges:
                         return value::type::rangelist;
-
-                case DW_AT::lo_user...DW_AT::hi_user:
-                        //HACK: ignore vendor extensions
-                        return value::type::invalid;
 
                 default:
                         throw format_error("DW_FORM_sec_offset not expected for attribute " +

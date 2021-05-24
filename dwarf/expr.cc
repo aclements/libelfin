@@ -87,123 +87,138 @@ expr::evaluate(expr_context *ctx, const std::initializer_list<taddr> &arguments)
 #pragma GCC diagnostic push
 #pragma GCC diagnostic warning "-Wswitch-enum"
                 DW_OP op = (DW_OP)cur.fixed<ubyte>();
-                switch (op) {
+                if (op >= DW_OP::lit0 && op <= DW_OP::lit31)
+                {
+                    stack.push_back((unsigned)op - (unsigned)DW_OP::lit0);
+                }
+                else if (op >= DW_OP::breg0 && op <= DW_OP::breg31)
+                {
+                    tmp1.u = (unsigned)op - (unsigned)DW_OP::breg0;
+                    tmp2.s = cur.sleb128();
+                    stack.push_back((int64_t)ctx->reg(tmp1.u) + tmp2.s);
+                }
+                else if (op >= DW_OP::reg0 && op <= DW_OP::reg31)
+                {
+                    result.location_type = expr_result::type::reg;
+                    result.value = (unsigned)op - (unsigned)DW_OP::reg0;
+                }
+                else if (op >= DW_OP::lo_user && op <= DW_OP::hi_user)
+                {
+                    // XXX We could let the context evaluate this,
+                    // but it would need access to the cursor.
+                    throw expr_error("unknown user op " + to_string(op));
+                }
+                else
+                {
+                    switch (op) {
                         // 2.5.1.1 Literal encodings
-                case DW_OP::lit0...DW_OP::lit31:
-                        stack.push_back((unsigned)op - (unsigned)DW_OP::lit0);
-                        break;
-                case DW_OP::addr:
+                    case DW_OP::addr:
                         stack.push_back(cur.address());
                         break;
-                case DW_OP::const1u:
+                    case DW_OP::const1u:
                         stack.push_back(cur.fixed<uint8_t>());
                         break;
-                case DW_OP::const2u:
+                    case DW_OP::const2u:
                         stack.push_back(cur.fixed<uint16_t>());
                         break;
-                case DW_OP::const4u:
+                    case DW_OP::const4u:
                         stack.push_back(cur.fixed<uint32_t>());
                         break;
-                case DW_OP::const8u:
+                    case DW_OP::const8u:
                         stack.push_back(cur.fixed<uint64_t>());
                         break;
-                case DW_OP::const1s:
+                    case DW_OP::const1s:
                         stack.push_back(cur.fixed<int8_t>());
                         break;
-                case DW_OP::const2s:
+                    case DW_OP::const2s:
                         stack.push_back(cur.fixed<int16_t>());
                         break;
-                case DW_OP::const4s:
+                    case DW_OP::const4s:
                         stack.push_back(cur.fixed<int32_t>());
                         break;
-                case DW_OP::const8s:
+                    case DW_OP::const8s:
                         stack.push_back(cur.fixed<int64_t>());
                         break;
-                case DW_OP::constu:
+                    case DW_OP::constu:
                         stack.push_back(cur.uleb128());
                         break;
-                case DW_OP::consts:
+                    case DW_OP::consts:
                         stack.push_back(cur.sleb128());
                         break;
 
                         // 2.5.1.2 Register based addressing
-                case DW_OP::fbreg:
+                    case DW_OP::fbreg:
                         // XXX
                         throw runtime_error("DW_OP_fbreg not implemented");
-                case DW_OP::breg0...DW_OP::breg31:
-                        tmp1.u = (unsigned)op - (unsigned)DW_OP::breg0;
-                        tmp2.s = cur.sleb128();
-                        stack.push_back((int64_t)ctx->reg(tmp1.u) + tmp2.s);
-                        break;
-                case DW_OP::bregx:
+                    case DW_OP::bregx:
                         tmp1.u = cur.uleb128();
                         tmp2.s = cur.sleb128();
                         stack.push_back((int64_t)ctx->reg(tmp1.u) + tmp2.s);
                         break;
 
                         // 2.5.1.3 Stack operations
-                case DW_OP::dup:
+                    case DW_OP::dup:
                         CHECK();
                         stack.push_back(stack.back());
                         break;
-                case DW_OP::drop:
+                    case DW_OP::drop:
                         CHECK();
                         stack.pop_back();
                         break;
-                case DW_OP::pick:
+                    case DW_OP::pick:
                         tmp1.u = cur.fixed<uint8_t>();
                         CHECKN(tmp1.u);
                         stack.push_back(stack.revat(tmp1.u));
                         break;
-                case DW_OP::over:
+                    case DW_OP::over:
                         CHECKN(2);
                         stack.push_back(stack.revat(1));
                         break;
-                case DW_OP::swap:
+                    case DW_OP::swap:
                         CHECKN(2);
                         tmp1.u = stack.back();
                         stack.back() = stack.revat(1);
                         stack.revat(1) = tmp1.u;
                         break;
-                case DW_OP::rot:
+                    case DW_OP::rot:
                         CHECKN(3);
                         tmp1.u = stack.back();
                         stack.back() = stack.revat(1);
                         stack.revat(1) = stack.revat(2);
                         stack.revat(2) = tmp1.u;
                         break;
-                case DW_OP::deref:
+                    case DW_OP::deref:
                         tmp1.u = subsec->addr_size;
                         goto deref_common;
-                case DW_OP::deref_size:
+                    case DW_OP::deref_size:
                         tmp1.u = cur.fixed<uint8_t>();
                         if (tmp1.u > subsec->addr_size)
-                                throw expr_error("DW_OP_deref_size operand exceeds address size");
-                deref_common:
+                            throw expr_error("DW_OP_deref_size operand exceeds address size");
+                    deref_common:
                         CHECK();
                         stack.back() = ctx->deref_size(stack.back(), tmp1.u);
                         break;
-                case DW_OP::xderef:
+                    case DW_OP::xderef:
                         tmp1.u = subsec->addr_size;
                         goto xderef_common;
-                case DW_OP::xderef_size:
+                    case DW_OP::xderef_size:
                         tmp1.u = cur.fixed<uint8_t>();
                         if (tmp1.u > subsec->addr_size)
-                                throw expr_error("DW_OP_xderef_size operand exceeds address size");
-                xderef_common:
+                            throw expr_error("DW_OP_xderef_size operand exceeds address size");
+                    xderef_common:
                         CHECKN(2);
                         tmp2.u = stack.back();
                         stack.pop_back();
                         stack.back() = ctx->xderef_size(tmp2.u, stack.back(), tmp1.u);
                         break;
-                case DW_OP::push_object_address:
+                    case DW_OP::push_object_address:
                         // XXX
                         throw runtime_error("DW_OP_push_object_address not implemented");
-                case DW_OP::form_tls_address:
+                    case DW_OP::form_tls_address:
                         CHECK();
                         stack.back() = ctx->form_tls_address(stack.back());
                         break;
-                case DW_OP::call_frame_cfa:
+                    case DW_OP::call_frame_cfa:
                         // XXX
                         throw runtime_error("DW_OP_call_frame_cfa not implemented");
 
@@ -216,17 +231,17 @@ expr::evaluate(expr_context *ctx, const std::initializer_list<taddr> &arguments)
                                 tmp2.u = stack.back();                  \
                                 stack.back() = tmp2.u binop tmp1.u;     \
                         } while (0)
-                case DW_OP::abs:
+                    case DW_OP::abs:
                         CHECK();
                         tmp1.u = stack.back();
                         if (tmp1.s < 0)
-                                tmp1.s = -tmp1.s;
+                            tmp1.s = -tmp1.s;
                         stack.back() = tmp1.u;
                         break;
-                case DW_OP::and_:
+                    case DW_OP::and_:
                         UBINOP(&);
                         break;
-                case DW_OP::div:
+                    case DW_OP::div:
                         CHECKN(2);
                         tmp1.u = stack.back();
                         stack.pop_back();
@@ -234,37 +249,37 @@ expr::evaluate(expr_context *ctx, const std::initializer_list<taddr> &arguments)
                         tmp3.s = tmp1.s / tmp2.s;
                         stack.back() = tmp3.u;
                         break;
-                case DW_OP::minus:
+                    case DW_OP::minus:
                         UBINOP(-);
                         break;
-                case DW_OP::mod:
+                    case DW_OP::mod:
                         UBINOP(%);
                         break;
-                case DW_OP::mul:
+                    case DW_OP::mul:
                         UBINOP(*);
                         break;
-                case DW_OP::neg:
+                    case DW_OP::neg:
                         CHECK();
                         tmp1.u = stack.back();
                         tmp1.s = -tmp1.s;
                         stack.back() = tmp1.u;
                         break;
-                case DW_OP::not_:
+                    case DW_OP::not_:
                         CHECK();
                         stack.back() = ~stack.back();
                         break;
-                case DW_OP::or_:
-                        UBINOP(|);
+                    case DW_OP::or_:
+                        UBINOP(| );
                         break;
-                case DW_OP::plus:
+                    case DW_OP::plus:
                         UBINOP(+);
                         break;
-                case DW_OP::plus_uconst:
+                    case DW_OP::plus_uconst:
                         tmp1.u = cur.uleb128();
                         CHECK();
                         stack.back() += tmp1.u;
                         break;
-                case DW_OP::shl:
+                    case DW_OP::shl:
                         CHECKN(2);
                         tmp1.u = stack.back();
                         stack.pop_back();
@@ -272,23 +287,23 @@ expr::evaluate(expr_context *ctx, const std::initializer_list<taddr> &arguments)
                         // C++ does not define what happens if you
                         // shift by more bits than the width of the
                         // type, so we handle this case specially
-                        if (tmp1.u < sizeof(tmp2.u)*8)
-                                stack.back() = tmp2.u << tmp1.u;
+                        if (tmp1.u < sizeof(tmp2.u) * 8)
+                            stack.back() = tmp2.u << tmp1.u;
                         else
-                                stack.back() = 0;
+                            stack.back() = 0;
                         break;
-                case DW_OP::shr:
+                    case DW_OP::shr:
                         CHECKN(2);
                         tmp1.u = stack.back();
                         stack.pop_back();
                         tmp2.u = stack.back();
                         // Same as above
-                        if (tmp1.u < sizeof(tmp2.u)*8)
-                                stack.back() = tmp2.u >> tmp1.u;
+                        if (tmp1.u < sizeof(tmp2.u) * 8)
+                            stack.back() = tmp2.u >> tmp1.u;
                         else
-                                stack.back() = 0;
+                            stack.back() = 0;
                         break;
-                case DW_OP::shra:
+                    case DW_OP::shra:
                         CHECKN(2);
                         tmp1.u = stack.back();
                         stack.pop_back();
@@ -297,18 +312,18 @@ expr::evaluate(expr_context *ctx, const std::initializer_list<taddr> &arguments)
                         // implementation-defined in C++.
                         tmp3.u = (tmp2.s < 0);
                         if (tmp3.u)
-                                tmp2.s = -tmp2.s;
-                        if (tmp1.u < sizeof(tmp2.u)*8)
-                                tmp2.u >>= tmp1.u;
+                            tmp2.s = -tmp2.s;
+                        if (tmp1.u < sizeof(tmp2.u) * 8)
+                            tmp2.u >>= tmp1.u;
                         else
-                                tmp2.u = 0;
+                            tmp2.u = 0;
                         // DWARF implies that over-shifting a negative
                         // number should result in 0, not ~0.
                         if (tmp3.u)
-                                tmp2.s = -tmp2.s;
+                            tmp2.s = -tmp2.s;
                         stack.back() = tmp2.u;
                         break;
-                case DW_OP::xor_:
+                    case DW_OP::xor_:
                         UBINOP(^);
                         break;
 #undef UBINOP
@@ -322,84 +337,76 @@ expr::evaluate(expr_context *ctx, const std::initializer_list<taddr> &arguments)
                                 tmp2.u = stack.back();                  \
                                 stack.back() = (tmp2.s <= tmp1.s) ? 1 : 0; \
                         } while (0)
-                case DW_OP::le:
-                        SRELOP(<=);
+                    case DW_OP::le:
+                        SRELOP(<= );
                         break;
-                case DW_OP::ge:
-                        SRELOP(>=);
+                    case DW_OP::ge:
+                        SRELOP(>= );
                         break;
-                case DW_OP::eq:
-                        SRELOP(==);
+                    case DW_OP::eq:
+                        SRELOP(== );
                         break;
-                case DW_OP::lt:
-                        SRELOP(<);
+                    case DW_OP::lt:
+                        SRELOP(< );
                         break;
-                case DW_OP::gt:
-                        SRELOP(>);
+                    case DW_OP::gt:
+                        SRELOP(> );
                         break;
-                case DW_OP::ne:
-                        SRELOP(!=);
+                    case DW_OP::ne:
+                        SRELOP(!= );
                         break;
-                case DW_OP::skip:
+                    case DW_OP::skip:
                         tmp1.s = cur.fixed<int16_t>();
                         goto skip_common;
-                case DW_OP::bra:
+                    case DW_OP::bra:
                         tmp1.s = cur.fixed<int16_t>();
                         CHECK();
                         tmp2.u = stack.back();
                         stack.pop_back();
                         if (tmp2.u == 0)
-                                break;
-                skip_common:
+                            break;
+                    skip_common:
                         cur = cursor(subsec, (int64_t)cur.get_section_offset() + tmp1.s);
                         break;
-                case DW_OP::call2:
-                case DW_OP::call4:
-                case DW_OP::call_ref:
+                    case DW_OP::call2:
+                    case DW_OP::call4:
+                    case DW_OP::call_ref:
                         // XXX
                         throw runtime_error(to_string(op) + " not implemented");
 #undef SRELOP
 
                         // 2.5.1.6 Special operations
-                case DW_OP::nop:
+                    case DW_OP::nop:
                         break;
 
                         // 2.6.1.1.2 Register location descriptions
-                case DW_OP::reg0...DW_OP::reg31:
-                        result.location_type = expr_result::type::reg;
-                        result.value = (unsigned)op - (unsigned)DW_OP::reg0;
-                        break;
-                case DW_OP::regx:
+                    case DW_OP::regx:
                         result.location_type = expr_result::type::reg;
                         result.value = cur.uleb128();
                         break;
 
                         // 2.6.1.1.3 Implicit location descriptions
-                case DW_OP::implicit_value:
+                    case DW_OP::implicit_value:
                         result.location_type = expr_result::type::implicit;
                         result.implicit_len = cur.uleb128();
                         cur.ensure(result.implicit_len);
                         result.implicit = cur.pos;
                         break;
-                case DW_OP::stack_value:
+                    case DW_OP::stack_value:
                         CHECK();
                         result.location_type = expr_result::type::literal;
                         result.value = stack.back();
                         break;
 
                         // 2.6.1.2 Composite location descriptions
-                case DW_OP::piece:
-                case DW_OP::bit_piece:
+                    case DW_OP::piece:
+                    case DW_OP::bit_piece:
                         // XXX
                         throw runtime_error(to_string(op) + " not implemented");
 
-                case DW_OP::lo_user...DW_OP::hi_user:
-                        // XXX We could let the context evaluate this,
-                        // but it would need access to the cursor.
-                        throw expr_error("unknown user op " + to_string(op));
-
-                default:
+                    default:
                         throw expr_error("bad operation " + to_string(op));
+                    }
                 }
 #pragma GCC diagnostic pop
 #undef CHECK

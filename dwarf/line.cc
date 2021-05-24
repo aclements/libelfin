@@ -399,6 +399,13 @@ line_table::iterator::step(cursor *cur)
                 uint64_t length = cur->uleb128();
                 section_offset end = cur->get_section_offset() + length;
                 opcode = cur->fixed<ubyte>();
+                if ((DW_LNE)opcode >= DW_LNE::lo_user && (DW_LNE)opcode <= DW_LNE::hi_user)
+                {
+                    // XXX Vendor extensions
+                    throw runtime_error("vendor line number opcode " +
+                        to_string((DW_LNE)opcode) +
+                        " not implemented");
+                }
                 switch ((DW_LNE)opcode) {
                 case DW_LNE::end_sequence:
                         regs.end_sequence = true;
@@ -416,11 +423,6 @@ line_table::iterator::step(cursor *cur)
                         // XXX Only DWARF4
                         regs.discriminator = cur->uleb128();
                         break;
-                case DW_LNE::lo_user...DW_LNE::hi_user:
-                        // XXX Vendor extensions
-                        throw runtime_error("vendor line number opcode " +
-                                            to_string((DW_LNE)opcode) +
-                                            " not implemented");
                 default:
                         // XXX Prior to DWARF4, any opcode number
                         // could be a vendor extension

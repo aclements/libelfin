@@ -280,7 +280,7 @@ struct Shdr
         // words in others. Here we declare a local shn type that is
         // elf::shn for the native byte order, but the full word for
         // specific encoding byte orders.
-        typedef typename internal::OrderPick<Order, elf::shn, typename E::Word, typename E::Word>::T shn;
+        typedef typename internal::OrderPick<Order, enums::shn, typename E::Word, typename E::Word>::T shn;
 
         typename E::Word           name; // Section name
         sht                        type; // Section type

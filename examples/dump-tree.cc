@@ -5,6 +5,10 @@
 #include <fcntl.h>
 #include <inttypes.h>
 
+#if _WIN32
+#include <io.h>
+#endif
+
 using namespace std;
 
 void
