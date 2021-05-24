@@ -4,7 +4,7 @@ C++11 library for reading ELF binaries and DWARFv4 debug information.
 Quick start
 -----------
 
-`make`, and optionally `make install`.  You'll need GCC 4.7 or later.
+`cmake --build`, `make`, and optionally `make install`.  You'll need GCC 4.7 or later.
 
 Features
 --------
