@@ -84,7 +84,7 @@ line_table::line_table(const shared_ptr<section> &sec, section_offset offset,
         m->program_offset = cur.get_section_offset() + header_length;
         m->minimum_instruction_length = cur.fixed<ubyte>();
         m->maximum_operations_per_instruction = 1;
-        if (version == 4)
+        if (version >= 4)
                 m->maximum_operations_per_instruction = cur.fixed<ubyte>();
         if (m->maximum_operations_per_instruction == 0)
                 throw format_error("maximum_operations_per_instruction cannot"

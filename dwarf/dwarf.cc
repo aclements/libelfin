@@ -273,12 +273,23 @@ compilation_unit::compilation_unit(const dwarf &file, section_offset offset)
         cursor sub(subsec);
         sub.skip_initial_length();
         uhalf version = sub.fixed<uhalf>();
-        if (version < 2 || version > 4)
-                throw format_error("unknown compilation unit version " + std::to_string(version));
+        (void)version;
+        /*if (version < 2 || version > 4)
+                throw format_error("unknown compilation unit version " + std::to_string(version));*/
         // .debug_abbrev-relative offset of this unit's abbrevs
-        section_offset debug_abbrev_offset = sub.offset();
-        ubyte address_size = sub.fixed<ubyte>();
-        subsec->addr_size = address_size;
+        section_offset debug_abbrev_offset;
+        if(version == 5)
+        {
+            sub.skip_unit_type();
+            ubyte address_size = sub.fixed<ubyte>();
+            subsec->addr_size = address_size;
+            debug_abbrev_offset = sub.offset();
+        }
+        else {
+            debug_abbrev_offset = sub.offset();
+            ubyte address_size = sub.fixed<ubyte>();
+            subsec->addr_size = address_size;
+        }
 
         m = make_shared<impl>(file, offset, subsec, debug_abbrev_offset,
                               sub.get_section_offset());
