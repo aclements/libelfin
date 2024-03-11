@@ -423,12 +423,12 @@ public:
                         return *this;
                 }
 
-                bool operator==(iterator &o) const
+                bool operator==(const iterator &o) const
                 {
                         return pos == o.pos;
                 }
 
-                bool operator!=(iterator &o) const
+                bool operator!=(const iterator &o) const
                 {
                         return pos != o.pos;
                 }
