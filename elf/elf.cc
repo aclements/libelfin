@@ -103,8 +103,14 @@ elf::elf(const std::shared_ptr<loader> &l)
         // Load sections
         const void *sec_data = l->load(m->hdr.shoff,
                                        m->hdr.shentsize * m->hdr.shnum);
+        if (NULL == sec_data) {
+            return;
+        }
         for (unsigned i = 0; i < m->hdr.shnum; i++) {
                 const void *sec = ((const char*)sec_data) + i * m->hdr.shentsize;
+                if (NULL == sec) {
+                    continue;
+                }
                 // XXX Circular reference.  Maybe this should be
                 // constructed on the fly?  Canonicalizing the header
                 // isn't super-cheap.
