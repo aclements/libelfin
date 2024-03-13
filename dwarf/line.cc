@@ -174,6 +174,8 @@ line_table::find_address(taddr addr) const
                     !prev->end_sequence)
                         return prev;
         }
+        if (prev->address == addr && !prev->end_sequence)
+          return prev;
         prev = e;
         return prev;
 }
