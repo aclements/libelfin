@@ -92,6 +92,7 @@ cursor::string(std::string &out)
         size_t size;
         const char *p = this->cstr(&size);
         out.resize(size);
+        if (size == 0) return;
         memmove(&out.front(), p, size);
 }
 

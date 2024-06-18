@@ -254,7 +254,7 @@ unit::impl::force_abbrevs()
                 // Move the map into the vector
                 abbrevs_vec.resize(highest + 1);
                 for (auto &entry : abbrevs_map)
-                        abbrevs_vec[entry.first] = move(entry.second);
+                        abbrevs_vec[entry.first] = std::move(entry.second);
                 abbrevs_map.clear();
         }
 

@@ -169,7 +169,7 @@ struct segment::impl {
         impl(const elf &f)
                 : f(f), data(nullptr) { }
 
-        const elf f;
+        const elf &f;
         Phdr<> hdr;
         const void *data;
 };
@@ -223,7 +223,7 @@ struct section::impl
         impl(const elf &f)
                 : f(f), name(nullptr), data(nullptr) { }
 
-        const elf f;
+        const elf &f;
         Shdr<> hdr;
         const char *name;
         size_t name_len;
