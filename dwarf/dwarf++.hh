@@ -38,6 +38,7 @@ class line_table;
 // Internal type forward-declarations
 struct section;
 struct abbrev_entry;
+struct attribute_spec;
 struct cursor;
 
 // XXX Audit for binary-compatibility
@@ -81,16 +82,20 @@ public:
 enum class section_type
 {
         abbrev,
+        addr,           // DWARF 5 .debug_addr
         aranges,
         frame,
         info,
         line,
+        line_str,
         loc,
         macinfo,
         pubnames,
         pubtypes,
         ranges,
+        rnglists,       // DWARF 5 .debug_rnglists
         str,
+        str_offsets,
         types,
 };
 
@@ -567,7 +572,8 @@ public:
         /**
          * Construct a value with type `type::invalid`.
          */
-        value() : cu(nullptr), typ(type::invalid) { }
+        value() : cu(nullptr), form(DW_FORM::addr), typ(type::invalid),
+                  offset(0), has_implicit_const(false), implicit_const(0) { }
 
         value(const value &o) = default;
         value(value &&o) = default;
@@ -705,7 +711,7 @@ private:
         friend class die;
 
         value(const unit *cu,
-              DW_AT name, DW_FORM form, type typ, section_offset offset);
+              const attribute_spec &spec, section_offset offset);
 
         void resolve_indirect(DW_AT name);
 
@@ -713,6 +719,8 @@ private:
         DW_FORM form;
         type typ;
         section_offset offset;
+        bool has_implicit_const;
+        int64_t implicit_const;
 };
 
 std::string
@@ -914,10 +922,11 @@ public:
          * the associated compilation unit.  cu_low_pc is the
          * DW_AT::low_pc attribute of the compilation unit containing
          * the referring DIE or 0 (this is used as the base address of
-         * the range list).
+         * the range list).  is_dwarf5 indicates whether this uses
+         * DWARF 5 format (DW_RLE_* encodings).
          */
         rangelist(const std::shared_ptr<section> &sec, section_offset off,
-                  unsigned cu_addr_size, taddr cu_low_pc);
+                  unsigned cu_addr_size, taddr cu_low_pc, bool is_dwarf5 = false);
 
         /**
          * Construct a range list from a sequence of {low, high}
@@ -966,6 +975,7 @@ private:
         std::vector<taddr> synthetic;
         std::shared_ptr<section> sec;
         taddr base_addr;
+        bool is_dwarf5;
 };
 
 /**
@@ -994,14 +1004,15 @@ public:
         /**
          * \internal Construct an end iterator.
          */
-        iterator() : sec(nullptr), base_addr(0), pos(0) { }
+        iterator() : sec(nullptr), base_addr(0), pos(0), is_dwarf5(false) { }
 
         /**
          * \internal Construct an iterator that reads rangelist data
          * from the beginning of the given section and starts with the
-         * given base address.
+         * given base address.  is_dwarf5 indicates whether to use
+         * DWARF 5 format parsing (DW_RLE_* encodings).
          */
-        iterator(const std::shared_ptr<section> &sec, taddr base_addr);
+        iterator(const std::shared_ptr<section> &sec, taddr base_addr, bool is_dwarf5 = false);
 
         /** Copy constructor */
         iterator(const iterator &o) = default;
@@ -1050,6 +1061,7 @@ private:
         taddr base_addr;
         section_offset pos;
         rangelist::entry entry;
+        bool is_dwarf5;
 };
 
 //////////////////////////////////////////////////////////////////
@@ -1079,7 +1091,7 @@ public:
          */
         line_table(const std::shared_ptr<section> &sec, section_offset offset,
                    unsigned cu_addr_size, const std::string &cu_comp_dir,
-                   const std::string &cu_name);
+                   const std::string &cu_name, const dwarf *dw = nullptr);
 
         /**
          * Construct an invalid, empty line table.
@@ -1121,6 +1133,7 @@ public:
          * number table.
          */
         iterator end() const;
+
 
         /**
          * Return an iterator to the line table entry containing addr
@@ -1264,7 +1277,7 @@ public:
          * for all fields.  is_stmt has no default value, so the
          * caller must provide it.
          */
-        void reset(bool is_stmt);
+        void reset(bool is_stmt, unsigned default_file_index);
 
         /**
          * Return a descriptive string of the form

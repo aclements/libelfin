@@ -250,7 +250,27 @@ enum class DW_FORM
         sec_offset   = 0x17,    // lineptr, loclistptr, macptr, rangelistptr
         exprloc      = 0x18,    // exprloc
         flag_present = 0x19,    // flag
+
+        // DWARF 5
+        strx         = 0x1a,    // string index in .debug_str_offsets
+        addrx        = 0x1b,    // address index in .debug_addr
+        ref_sup4     = 0x1c,    // reference
+        strp_sup     = 0x1d,    // string
+        data16       = 0x1e,    // constant
+        line_strp    = 0x1f,    // string
         ref_sig8     = 0x20,    // reference
+        implicit_const = 0x21,  // constant encoded in abbrev
+        loclistx     = 0x22,    // location list index
+        rnglistx     = 0x23,    // range list index
+        ref_sup8     = 0x24,    // reference
+        strx1        = 0x25,    // 1-byte string index
+        strx2        = 0x26,    // 2-byte string index
+        strx3        = 0x27,    // 3-byte string index
+        strx4        = 0x28,    // 4-byte string index
+        addrx1       = 0x29,    // 1-byte address index
+        addrx2       = 0x2a,    // 2-byte address index
+        addrx3       = 0x2b,    // 3-byte address index
+        addrx4       = 0x2c,    // 4-byte address index
 };
 
 std::string
@@ -559,6 +579,37 @@ enum class DW_LNE
 
 std::string
 to_string(DW_LNE v);
+
+// Line number content types (DWARF5 section 7.22 table 7.30)
+enum class DW_LNCT
+{
+        path = 0x01,
+        directory_index = 0x02,
+        timestamp = 0x03,
+        size = 0x04,
+        MD5 = 0x05,
+        lo_user = 0x2000,
+        hi_user = 0x3fff,
+};
+
+std::string
+to_string(DW_LNCT v);
+
+// Range list entry encodings (DWARF5 section 7.25)
+enum class DW_RLE : ubyte
+{
+        end_of_list    = 0x00,
+        base_addressx  = 0x01,
+        startx_endx    = 0x02,
+        startx_length  = 0x03,
+        offset_pair    = 0x04,
+        base_address   = 0x05,
+        start_end      = 0x06,
+        start_length   = 0x07,
+};
+
+std::string
+to_string(DW_RLE v);
 
 DWARFPP_END_NAMESPACE
 

@@ -11,10 +11,15 @@ using namespace std;
 DWARFPP_BEGIN_NAMESPACE
 
 value::value(const unit *cu,
-             DW_AT name, DW_FORM form, type typ, section_offset offset)
-        : cu(cu), form(form), typ(typ), offset(offset) {
+             const attribute_spec &spec, section_offset offset)
+        : cu(cu),
+          form(spec.form),
+          typ(spec.type),
+          offset(offset),
+          has_implicit_const(spec.form == DW_FORM::implicit_const),
+          implicit_const(spec.implicit_const) {
         if (form == DW_FORM::indirect)
-                resolve_indirect(name);
+                resolve_indirect(spec.name);
 }
 
 section_offset
@@ -26,11 +31,48 @@ value::get_section_offset() const
 taddr
 value::as_address() const
 {
-        if (form != DW_FORM::addr)
-                throw value_type_mismatch("cannot read " + to_string(typ) + " as address");
-
         cursor cur(cu->data(), offset);
-        return cur.address();
+
+        if (form == DW_FORM::addr) {
+                return cur.address();
+        }
+
+        // DWARF 5 address index forms
+        uint64_t index;
+        switch (form) {
+        case DW_FORM::addrx:
+                index = cur.uleb128();
+                break;
+        case DW_FORM::addrx1:
+                index = cur.fixed<uint8_t>();
+                break;
+        case DW_FORM::addrx2:
+                index = cur.fixed<uint16_t>();
+                break;
+        case DW_FORM::addrx3:
+                index = cur.fixed<uint8_t>() | (cur.fixed<uint16_t>() << 8);
+                break;
+        case DW_FORM::addrx4:
+                index = cur.fixed<uint32_t>();
+                break;
+        default:
+                throw value_type_mismatch("cannot read " + to_string(typ) + " as address");
+        }
+
+        // Look up address in .debug_addr section
+        // DWARF 5 .debug_addr has a header: length (4 or 12 bytes), version (2), addr_size (1), segment_selector_size (1)
+        auto addr_sec = cu->get_dwarf().get_section(section_type::addr);
+        section_offset header_size = 8;  // Simplified: assume 32-bit DWARF (4 + 2 + 1 + 1)
+        unsigned addr_size = cu->data()->addr_size;
+        cursor addr_cur(addr_sec, header_size + index * addr_size);
+        // Read address directly using the CU's addr_size (not the section's)
+        if (addr_size == 4) {
+                return addr_cur.fixed<uint32_t>();
+        } else if (addr_size == 8) {
+                return addr_cur.fixed<uint64_t>();
+        } else {
+                throw format_error("unsupported address size " + std::to_string(addr_size));
+        }
 }
 
 const void *
@@ -76,6 +118,8 @@ value::as_uconstant() const
                 return cur.fixed<uint64_t>();
         case DW_FORM::udata:
                 return cur.uleb128();
+        case DW_FORM::implicit_const:
+                return static_cast<uint64_t>(implicit_const);
         default:
                 throw value_type_mismatch("cannot read " + to_string(typ) + " as uconstant");
         }
@@ -96,6 +140,8 @@ value::as_sconstant() const
                 return cur.fixed<int64_t>();
         case DW_FORM::sdata:
                 return cur.sleb128();
+        case DW_FORM::implicit_const:
+                return implicit_const;
         default:
                 throw value_type_mismatch("cannot read " + to_string(typ) + " as sconstant");
         }
@@ -145,17 +191,74 @@ value::as_flag() const
 rangelist
 value::as_rangelist() const
 {
-        section_offset off = as_sec_offset();
-
         // The compilation unit may not have a base address.  In this
         // case, the first entry in the range list must be a base
         // address entry, but we'll just assume 0 for the initial base
         // address.
         die cudie = cu->root();
         taddr cu_low_pc = cudie.has(DW_AT::low_pc) ? at_low_pc(cudie) : 0;
-        auto sec = cu->get_dwarf().get_section(section_type::ranges);
         auto cusec = cu->data();
-        return rangelist(sec, off, cusec->addr_size, cu_low_pc);
+
+        // DWARF 5 uses rnglistx form with .debug_rnglists section
+        if (form == DW_FORM::rnglistx) {
+                cursor cur(cu->data(), offset);
+                uint64_t index = cur.uleb128();
+
+                // Get .debug_rnglists section
+                auto rnglists_sec = cu->get_dwarf().get_section(section_type::rnglists);
+
+                // Parse the rnglists header to find the offsets table
+                // Header format: unit_length (4/12), version (2), addr_size (1),
+                // segment_selector_size (1), offset_entry_count (4)
+                cursor hdr(rnglists_sec, (section_offset)0);
+
+                // Read unit length to determine format
+                uint32_t unit_length32 = hdr.fixed<uint32_t>();
+                format fmt;
+                section_offset header_size;
+                if (unit_length32 == 0xffffffff) {
+                        // 64-bit DWARF
+                        hdr.fixed<uint64_t>(); // actual length
+                        fmt = format::dwarf64;
+                        header_size = 20; // 12 + 2 + 1 + 1 + 4
+                } else {
+                        fmt = format::dwarf32;
+                        header_size = 12; // 4 + 2 + 1 + 1 + 4
+                }
+
+                uint16_t version = hdr.fixed<uint16_t>();
+                (void)version; // Should be 5
+                uint8_t addr_size = hdr.fixed<uint8_t>();
+                (void)addr_size;
+                uint8_t segment_selector_size = hdr.fixed<uint8_t>();
+                (void)segment_selector_size;
+                uint32_t offset_entry_count = hdr.fixed<uint32_t>();
+
+                if (index >= offset_entry_count) {
+                        throw format_error("rnglistx index out of bounds");
+                }
+
+                // Read the offset from the offsets table
+                section_offset offset_size = (fmt == format::dwarf64) ? 8 : 4;
+                cursor offsets_cur(rnglists_sec, header_size + index * offset_size);
+                section_offset range_offset;
+                if (fmt == format::dwarf64) {
+                        range_offset = offsets_cur.fixed<uint64_t>();
+                } else {
+                        range_offset = offsets_cur.fixed<uint32_t>();
+                }
+
+                // The offset is relative to the first range list entry (after offsets table)
+                section_offset base_offset = header_size + offset_entry_count * offset_size;
+                section_offset absolute_offset = base_offset + range_offset;
+
+                return rangelist(rnglists_sec, absolute_offset, cusec->addr_size, cu_low_pc, true);
+        }
+
+        // DWARF 4 and earlier: direct offset into .debug_ranges
+        section_offset off = as_sec_offset();
+        auto sec = cu->get_dwarf().get_section(section_type::ranges);
+        return rangelist(sec, off, cusec->addr_size, cu_low_pc, false);
 }
 
 die
@@ -245,6 +348,51 @@ value::as_cstr(size_t *size_out) const
                 cursor scur(cu->get_dwarf().get_section(section_type::str), off);
                 return scur.cstr(size_out);
         }
+        case DW_FORM::line_strp: {
+                section_offset off = cur.offset();
+                cursor scur(cu->get_dwarf().get_section(section_type::line_str), off);
+                return scur.cstr(size_out);
+        }
+        case DW_FORM::strx:
+        case DW_FORM::strx1:
+        case DW_FORM::strx2:
+        case DW_FORM::strx3:
+        case DW_FORM::strx4: {
+                // DWARF 5: Read string index, look up in .debug_str_offsets, then read from .debug_str
+                uint64_t index;
+                switch (form) {
+                case DW_FORM::strx:
+                        index = cur.uleb128();
+                        break;
+                case DW_FORM::strx1:
+                        index = cur.fixed<uint8_t>();
+                        break;
+                case DW_FORM::strx2:
+                        index = cur.fixed<uint16_t>();
+                        break;
+                case DW_FORM::strx3:
+                        index = cur.fixed<uint8_t>() | (cur.fixed<uint16_t>() << 8);
+                        break;
+                case DW_FORM::strx4:
+                        index = cur.fixed<uint32_t>();
+                        break;
+                default:
+                        index = 0;
+                        break;
+                }
+                // Get str_offsets_base from CU root DIE's DW_AT_str_offsets_base
+                // For now, we use a simplified approach: read from start of section + header
+                // DWARF 5 .debug_str_offsets has a header (length + version + padding)
+                // We skip the 8-byte header (4-byte length + 2-byte version + 2-byte padding for 32-bit DWARF)
+                auto str_offsets_sec = cu->get_dwarf().get_section(section_type::str_offsets);
+                section_offset header_size = 8;  // Simplified: assume 32-bit DWARF
+                unsigned offset_size = (str_offsets_sec->addr_size == 8) ? 8 : 4;
+                cursor offsets_cur(str_offsets_sec,
+                                   header_size + index * offset_size);
+                section_offset str_off = offsets_cur.offset();
+                cursor scur(cu->get_dwarf().get_section(section_type::str), str_off);
+                return scur.cstr(size_out);
+        }
         default:
                 throw value_type_mismatch("cannot read " + to_string(typ) + " as string");
         }
@@ -279,7 +427,10 @@ value::resolve_indirect(DW_AT name)
         do {
                 form = (DW_FORM)c.uleb128();
         } while (form == DW_FORM::indirect);
-        typ = attribute_spec(name, form).type;
+        attribute_spec spec(name, form);
+        typ = spec.type;
+        has_implicit_const = (form == DW_FORM::implicit_const);
+        implicit_const = spec.implicit_const;
         offset = c.get_section_offset();
 }
 

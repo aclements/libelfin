@@ -122,7 +122,38 @@ dwarf::get_section(section_type type) const
         if (!data)
                 throw format_error(std::string(elf::section_type_to_name(type))
                                    + " section missing");
-        m->sections[type] = std::make_shared<section>(section_type::str, data, size, m->sec_info->ord);
+
+        // Determine format for auxiliary sections.
+        // DWARF 5 sections like str_offsets and addr have headers with initial length.
+        // Simple sections like str and line_str are just raw string data.
+        format fmt = format::unknown;
+        if ((type == section_type::str_offsets || type == section_type::addr) && size >= 4) {
+                // .debug_str_offsets and .debug_addr have headers starting with initial length
+                uint32_t initial_length = *reinterpret_cast<const uint32_t*>(data);
+                if (initial_length == 0xffffffff) {
+                        fmt = format::dwarf64;
+                } else {
+                        fmt = format::dwarf32;
+                }
+        } else if (type == section_type::str || type == section_type::line_str) {
+                // String sections don't need format - they're just null-terminated strings.
+                // Use dwarf32 as default since cursor operations don't use format for strings.
+                fmt = format::dwarf32;
+        } else {
+                // For other sections, try to detect format from initial length if present
+                if (size >= 4) {
+                        uint32_t initial_length = *reinterpret_cast<const uint32_t*>(data);
+                        if (initial_length == 0xffffffff) {
+                                fmt = format::dwarf64;
+                        } else if (initial_length < 0xfffffff0) {
+                                fmt = format::dwarf32;
+                        }
+                        // If initial_length is a reserved value, leave format unknown
+                }
+        }
+
+        m->sections[type] = std::make_shared<section>(type, data, size,
+                                                       m->sec_info->ord, fmt);
         return m->sections[type];
 }
 
@@ -314,7 +345,7 @@ compilation_unit::get_line_table() const
                 
                 m->lt = line_table(sec, d[DW_AT::stmt_list].as_sec_offset(),
                                    m->subsec->addr_size, comp_dir,
-                                   at_name(d));
+                                   at_name(d), &m->file);
         }
 done:
         return m->lt;

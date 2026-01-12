@@ -98,11 +98,36 @@ resolve_type(DW_AT name, DW_FORM form)
         case DW_FORM::ref_addr:
         case DW_FORM::ref_sig8:
         case DW_FORM::ref_udata:
+        case DW_FORM::ref_sup4:
+        case DW_FORM::ref_sup8:
                 return value::type::reference;
 
         case DW_FORM::string:
         case DW_FORM::strp:
+        case DW_FORM::line_strp:
+        case DW_FORM::strp_sup:
+        case DW_FORM::strx:
+        case DW_FORM::strx1:
+        case DW_FORM::strx2:
+        case DW_FORM::strx3:
+        case DW_FORM::strx4:
                 return value::type::string;
+
+        case DW_FORM::addrx:
+        case DW_FORM::addrx1:
+        case DW_FORM::addrx2:
+        case DW_FORM::addrx3:
+        case DW_FORM::addrx4:
+                return value::type::address;
+
+        case DW_FORM::implicit_const:
+                return value::type::constant;
+
+        case DW_FORM::loclistx:
+                return value::type::loclist;
+
+        case DW_FORM::rnglistx:
+                return value::type::rangelist;
 
         case DW_FORM::indirect:
                 // There's nothing meaningful we can do
@@ -138,15 +163,18 @@ resolve_type(DW_AT name, DW_FORM form)
                         return value::type::invalid;
 
                 default:
-                        throw format_error("DW_FORM_sec_offset not expected for attribute " +
-                                           to_string(name));
+                        // DWARF 5 has many new attributes using sec_offset
+                        // (str_offsets_base, addr_base, rnglists_base, loclists_base, etc.)
+                        // Just treat them as invalid for now to allow skipping
+                        return value::type::invalid;
                 }
         }
         throw format_error("unknown attribute form " + to_string(form));
 }
 
-attribute_spec::attribute_spec(DW_AT name, DW_FORM form)
-        : name(name), form(form), type(resolve_type(name, form))
+attribute_spec::attribute_spec(DW_AT name, DW_FORM form, int64_t implicit_const)
+        : name(name), form(form), type(resolve_type(name, form)),
+          implicit_const(implicit_const)
 {
 }
 
@@ -167,7 +195,10 @@ abbrev_entry::read(cursor *cur)
                 DW_FORM form = (DW_FORM)cur->uleb128();
                 if (name == (DW_AT)0 && form == (DW_FORM)0)
                         break;
-                attributes.push_back(attribute_spec(name, form));
+                int64_t implicit_const = 0;
+                if (form == DW_FORM::implicit_const)
+                        implicit_const = cur->sleb128();
+                attributes.push_back(attribute_spec(name, form, implicit_const));
         }
         attributes.shrink_to_fit();
         return true;

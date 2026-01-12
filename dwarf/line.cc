@@ -24,9 +24,19 @@ static const int opcode_lengths[] = {
 
 struct line_table::impl
 {
+        struct entry_format {
+                DW_LNCT content;
+                DW_FORM form;
+        };
+
         shared_ptr<section> sec;
+        const dwarf *dw;
+        shared_ptr<section> line_str_sec;
+        shared_ptr<section> str_sec;
+        string comp_dir;
 
         // Header information
+        uhalf version;
         section_offset program_offset;
         ubyte minimum_instruction_length;
         ubyte maximum_operations_per_instruction;
@@ -34,9 +44,11 @@ struct line_table::impl
         sbyte line_base;
         ubyte line_range;
         ubyte opcode_base;
+        unsigned file_index_base;
         vector<ubyte> standard_opcode_lengths;
         vector<string> include_directories;
         vector<file> file_names;
+        vector<entry_format> file_entry_formats;
 
         // The offset in sec following the last read file name entry.
         // File name entries can appear both in the line table header
@@ -49,42 +61,63 @@ struct line_table::impl
         // know we've gathered all file names.
         bool file_names_complete;
 
-        impl() : last_file_name_end(0), file_names_complete(false) {};
+        impl() : dw(nullptr), version(0), file_index_base(1),
+                 last_file_name_end(0),
+                 file_names_complete(false) {};
 
         bool read_file_entry(cursor *cur, bool in_header);
+        void add_include_directory(const string &dir);
+        void add_file_entry(string file_name, uint64_t dir_index,
+                            uint64_t mtime, uint64_t length);
+        vector<entry_format> read_entry_formats(cursor *cur);
+        void read_v5_directory_table(cursor *cur);
+        void read_v5_file_table(cursor *cur);
+        void read_file_entry_v5(cursor *cur);
+        string read_form_string(cursor *cur, DW_FORM form);
+        uint64_t read_form_unsigned(cursor *cur, DW_FORM form);
+        string read_string_from_section(section_type type, section_offset off);
 };
 
 line_table::line_table(const shared_ptr<section> &sec, section_offset offset,
                        unsigned cu_addr_size, const string &cu_comp_dir,
-                       const string &cu_name)
+                       const string &cu_name, const dwarf *dw)
         : m(make_shared<impl>())
 {
-        // XXX DWARF2 and 3 give a weird specification for DW_AT_comp_dir
+        m->dw = dw;
 
+        // XXX DWARF2 and 3 give a weird specification for DW_AT_comp_dir
         string comp_dir, abs_path;
         if (cu_comp_dir.empty() || cu_comp_dir.back() == '/')
                 comp_dir = cu_comp_dir;
         else
                 comp_dir = cu_comp_dir + '/';
+        m->comp_dir = comp_dir;
 
         // Read the line table header (DWARF2 section 6.2.4, DWARF3
-        // section 6.2.4, DWARF4 section 6.2.3)
+        // section 6.2.4, DWARF4 section 6.2.3, DWARF5 section 6.2.4)
         cursor cur(sec, offset);
         m->sec = cur.subsection();
         cur = cursor(m->sec);
         cur.skip_initial_length();
-        m->sec->addr_size = cu_addr_size;
 
         // Basic header information
-        uhalf version = cur.fixed<uhalf>();
-        if (version < 2 || version > 4)
+        m->version = cur.fixed<uhalf>();
+        if (m->version < 2 || m->version > 5)
                 throw format_error("unknown line number table version " +
-                                   std::to_string(version));
+                                   std::to_string(m->version));
+        if (m->version >= 5) {
+                m->sec->addr_size = cur.fixed<ubyte>();
+                ubyte segment_selector_size = cur.fixed<ubyte>();
+                (void)segment_selector_size;
+        } else {
+                m->sec->addr_size = cu_addr_size;
+        }
+        m->file_index_base = (m->version >= 5) ? 0 : 1;
         section_length header_length = cur.offset();
         m->program_offset = cur.get_section_offset() + header_length;
         m->minimum_instruction_length = cur.fixed<ubyte>();
         m->maximum_operations_per_instruction = 1;
-        if (version >= 4)
+        if (m->version >= 4)
                 m->maximum_operations_per_instruction = cur.fixed<ubyte>();
         if (m->maximum_operations_per_instruction == 0)
                 throw format_error("maximum_operations_per_instruction cannot"
@@ -95,7 +128,7 @@ line_table::line_table(const shared_ptr<section> &sec, section_offset offset,
         if (m->line_range == 0)
                 throw format_error("line_range cannot be 0 in line number table");
         m->opcode_base = cur.fixed<ubyte>();
-        
+
         static_assert(sizeof(opcode_lengths) / sizeof(opcode_lengths[0]) == 13,
                       "opcode_lengths table has wrong length");
 
@@ -118,31 +151,45 @@ line_table::line_table(const shared_ptr<section> &sec, section_offset offset,
         }
 
         // Include directories list
-        string incdir;
-        // Include directory 0 is implicitly the compilation unit
-        // current directory
-        m->include_directories.push_back(comp_dir);
-        while (true) {
-                cur.string(incdir);
-                if (incdir.empty())
-                        break;
-                if (incdir.back() != '/')
-                        incdir += '/';
-                if (incdir[0] == '/')
-                        m->include_directories.push_back(move(incdir));
-                else
-                        m->include_directories.push_back(comp_dir + incdir);
+        m->include_directories.clear();
+        if (m->version < 5)
+                m->include_directories.push_back(m->comp_dir);
+        if (m->version >= 5) {
+                m->read_v5_directory_table(&cur);
+        } else {
+                string incdir;
+                while (true) {
+                        cur.string(incdir);
+                        if (incdir.empty())
+                                break;
+                        if (incdir.back() != '/')
+                                incdir += '/';
+                        if (incdir[0] == '/')
+                                m->include_directories.push_back(move(incdir));
+                        else
+                                m->include_directories.push_back(comp_dir + incdir);
+                }
         }
 
         // File name list
         string file_name;
-        // File name 0 is implicitly the compilation unit file name.
-        // cu_name can be relative to comp_dir or absolute.
-        if (!cu_name.empty() && cu_name[0] == '/')
-                m->file_names.emplace_back(cu_name);
-        else
-                m->file_names.emplace_back(comp_dir + cu_name);
-        while (m->read_file_entry(&cur, true));
+        if (m->version >= 5) {
+                m->read_v5_file_table(&cur);
+                if (m->file_names.empty()) {
+                        if (!cu_name.empty() && cu_name[0] == '/')
+                                m->file_names.emplace_back(cu_name);
+                        else
+                                m->file_names.emplace_back(comp_dir + cu_name);
+                }
+        } else {
+                // File name 0 is implicitly the compilation unit file name.
+                // cu_name can be relative to comp_dir or absolute.
+                if (!cu_name.empty() && cu_name[0] == '/')
+                        m->file_names.emplace_back(cu_name);
+                else
+                        m->file_names.emplace_back(comp_dir + cu_name);
+                while (m->read_file_entry(&cur, true));
+        }
 }
 
 line_table::iterator
@@ -204,6 +251,11 @@ line_table::impl::read_file_entry(cursor *cur, bool in_header)
 {
         assert(cur->sec == sec);
 
+        if (version >= 5) {
+                read_file_entry_v5(cur);
+                return true;
+        }
+
         string file_name;
         cur->string(file_name);
         if (in_header && file_name.empty())
@@ -217,17 +269,227 @@ line_table::impl::read_file_entry(cursor *cur, bool in_header)
                 return true;
         last_file_name_end = cur->get_section_offset();
 
-        if (file_name[0] == '/')
-                file_names.emplace_back(move(file_name), mtime, length);
-        else if (dir_index < include_directories.size())
-                file_names.emplace_back(
-                        include_directories[dir_index] + file_name,
-                        mtime, length);
-        else
-                throw format_error("file name directory index out of range: " +
-                                   std::to_string(dir_index));
+        if (file_name.empty())
+                return false;
+
+        add_file_entry(move(file_name), dir_index, mtime, length);
 
         return true;
+}
+
+void
+line_table::impl::add_include_directory(const string &dir)
+{
+        string resolved = dir;
+        if (!resolved.empty() && resolved.back() != '/')
+                resolved += '/';
+        if (!resolved.empty() && resolved[0] != '/' && !comp_dir.empty())
+                resolved = comp_dir + resolved;
+        if (resolved.empty())
+                resolved = comp_dir;
+        include_directories.push_back(move(resolved));
+}
+
+void
+line_table::impl::add_file_entry(string file_name, uint64_t dir_index,
+                                 uint64_t mtime, uint64_t length)
+{
+        if (file_name.empty())
+                throw format_error("file entry missing file name");
+        if (file_name[0] == '/') {
+                file_names.emplace_back(move(file_name), mtime, length);
+                return;
+        }
+
+        const string *base = nullptr;
+        if (dir_index < include_directories.size())
+                base = &include_directories[dir_index];
+        else if (dir_index == 0 && version < 5 && !comp_dir.empty())
+                base = &comp_dir;
+        if (!base)
+                throw format_error("file name directory index out of range: " +
+                                   std::to_string(dir_index));
+        file_names.emplace_back(*base + file_name, mtime, length);
+}
+
+vector<line_table::impl::entry_format>
+line_table::impl::read_entry_formats(cursor *cur)
+{
+        vector<entry_format> formats;
+        uint64_t count = cur->uleb128();
+        formats.reserve(count);
+        for (uint64_t i = 0; i < count; ++i) {
+                entry_format fmt;
+                fmt.content = (DW_LNCT)cur->uleb128();
+                fmt.form = (DW_FORM)cur->uleb128();
+                formats.push_back(fmt);
+        }
+        return formats;
+}
+
+void
+line_table::impl::read_v5_directory_table(cursor *cur)
+{
+        auto formats = read_entry_formats(cur);
+        uint64_t count = cur->uleb128();
+        for (uint64_t i = 0; i < count; ++i) {
+                string path;
+                for (auto &fmt : formats) {
+                        switch (fmt.content) {
+                        case DW_LNCT::path:
+                                path = read_form_string(cur, fmt.form);
+                                break;
+                        default:
+                                cur->skip_form(fmt.form);
+                                break;
+                        }
+                }
+                add_include_directory(path);
+        }
+}
+
+void
+line_table::impl::read_v5_file_table(cursor *cur)
+{
+        file_entry_formats = read_entry_formats(cur);
+        uint64_t count = cur->uleb128();
+        for (uint64_t i = 0; i < count; ++i) {
+                string file_name;
+                uint64_t dir_index = 0;
+                uint64_t mtime = 0;
+                uint64_t length = 0;
+                for (auto &fmt : file_entry_formats) {
+                        switch (fmt.content) {
+                        case DW_LNCT::path:
+                                file_name = read_form_string(cur, fmt.form);
+                                break;
+                        case DW_LNCT::directory_index:
+                                dir_index = read_form_unsigned(cur, fmt.form);
+                                break;
+                        case DW_LNCT::timestamp:
+                                mtime = read_form_unsigned(cur, fmt.form);
+                                break;
+                        case DW_LNCT::size:
+                                length = read_form_unsigned(cur, fmt.form);
+                                break;
+                        default:
+                                cur->skip_form(fmt.form);
+                                break;
+                        }
+                }
+                if (!file_name.empty())
+                        add_file_entry(move(file_name), dir_index, mtime, length);
+        }
+}
+
+void
+line_table::impl::read_file_entry_v5(cursor *cur)
+{
+        if (file_entry_formats.empty())
+                throw format_error("line table missing file name entry formats");
+
+        string file_name;
+        uint64_t dir_index = 0;
+        uint64_t mtime = 0;
+        uint64_t length = 0;
+        for (auto &fmt : file_entry_formats) {
+                switch (fmt.content) {
+                case DW_LNCT::path:
+                        file_name = read_form_string(cur, fmt.form);
+                        break;
+                case DW_LNCT::directory_index:
+                        dir_index = read_form_unsigned(cur, fmt.form);
+                        break;
+                case DW_LNCT::timestamp:
+                        mtime = read_form_unsigned(cur, fmt.form);
+                        break;
+                case DW_LNCT::size:
+                        length = read_form_unsigned(cur, fmt.form);
+                        break;
+                default:
+                        cur->skip_form(fmt.form);
+                        break;
+                }
+        }
+
+        section_offset entry_end = cur->get_section_offset();
+        if (entry_end <= last_file_name_end)
+                return;
+        last_file_name_end = entry_end;
+
+        if (!file_name.empty())
+                add_file_entry(move(file_name), dir_index, mtime, length);
+}
+
+string
+line_table::impl::read_form_string(cursor *cur, DW_FORM form)
+{
+        switch (form) {
+        case DW_FORM::string: {
+                string res;
+                cur->string(res);
+                return res;
+        }
+        case DW_FORM::line_strp:
+                return read_string_from_section(section_type::line_str,
+                                                cur->offset());
+        case DW_FORM::strp:
+                return read_string_from_section(section_type::str,
+                                                cur->offset());
+        default:
+                throw format_error("unsupported string form in line table: " +
+                                   to_string(form));
+        }
+}
+
+uint64_t
+line_table::impl::read_form_unsigned(cursor *cur, DW_FORM form)
+{
+        switch (form) {
+        case DW_FORM::data1:
+                return cur->fixed<ubyte>();
+        case DW_FORM::data2:
+                return cur->fixed<uhalf>();
+        case DW_FORM::data4:
+                return cur->fixed<uword>();
+        case DW_FORM::data8:
+                return cur->fixed<uint64_t>();
+        case DW_FORM::udata:
+                return cur->uleb128();
+        case DW_FORM::sdata:
+                return (uint64_t)cur->sleb128();
+        default:
+                throw format_error("unsupported numeric form in line table: " +
+                                   to_string(form));
+        }
+}
+
+string
+line_table::impl::read_string_from_section(section_type type,
+                                           section_offset off)
+{
+        shared_ptr<section> *cache = nullptr;
+        switch (type) {
+        case section_type::line_str:
+                cache = &line_str_sec;
+                break;
+        case section_type::str:
+                cache = &str_sec;
+                break;
+        default:
+                throw format_error("unsupported string section");
+        }
+
+        if (!cache->get()) {
+                if (!dw)
+                        throw format_error("line table requires DWARF context to read strings");
+                *cache = dw->get_section(type);
+        }
+
+        cursor scur(*cache, off);
+        string res;
+        scur.string(res);
+        return res;
 }
 
 line_table::file::file(string path, uint64_t mtime, uint64_t length)
@@ -236,11 +498,12 @@ line_table::file::file(string path, uint64_t mtime, uint64_t length)
 }
 
 void
-line_table::entry::reset(bool is_stmt)
+line_table::entry::reset(bool is_stmt, unsigned default_file_index)
 {
         address = op_index = 0;
         file = nullptr;
-        file_index = line = 1;
+        file_index = default_file_index;
+        line = 1;
         column = 0;
         this->is_stmt = is_stmt;
         basic_block = end_sequence = prologue_end = epilogue_begin = false;
@@ -263,7 +526,7 @@ line_table::iterator::iterator(const line_table *table, section_offset pos)
         : table(table), pos(pos)
 {
         if (table) {
-                regs.reset(table->m->default_is_stmt);
+                regs.reset(table->m->default_is_stmt, table->m->file_index_base);
                 ++(*this);
         }
 }
@@ -403,8 +666,8 @@ line_table::iterator::step(cursor *cur)
                 case DW_LNE::end_sequence:
                         regs.end_sequence = true;
                         entry = regs;
-                        regs.reset(m->default_is_stmt);
-                        break;
+                regs.reset(m->default_is_stmt, m->file_index_base);
+                break;
                 case DW_LNE::set_address:
                         regs.address = cur->address();
                         regs.op_index = 0;

@@ -230,7 +230,10 @@ struct attribute_spec
         // Computed information
         value::type type;
 
-        attribute_spec(DW_AT name, DW_FORM form);
+        // For DW_FORM_implicit_const, stores the SLEB128 constant.
+        int64_t implicit_const;
+
+        attribute_spec(DW_AT name, DW_FORM form, int64_t implicit_const = 0);
 };
 
 typedef std::uint64_t abbrev_code;

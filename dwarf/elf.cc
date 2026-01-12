@@ -15,18 +15,22 @@ static const struct
         const char *name;
         section_type type;
 } sections[] = {
-        {".debug_abbrev",   section_type::abbrev},
-        {".debug_aranges",  section_type::aranges},
-        {".debug_frame",    section_type::frame},
-        {".debug_info",     section_type::info},
-        {".debug_line",     section_type::line},
-        {".debug_loc",      section_type::loc},
-        {".debug_macinfo",  section_type::macinfo},
-        {".debug_pubnames", section_type::pubnames},
-        {".debug_pubtypes", section_type::pubtypes},
-        {".debug_ranges",   section_type::ranges},
-        {".debug_str",      section_type::str},
-        {".debug_types",    section_type::types},
+        {".debug_abbrev",      section_type::abbrev},
+        {".debug_addr",        section_type::addr},
+        {".debug_aranges",     section_type::aranges},
+        {".debug_frame",       section_type::frame},
+        {".debug_info",        section_type::info},
+        {".debug_line",        section_type::line},
+        {".debug_line_str",    section_type::line_str},
+        {".debug_loc",         section_type::loc},
+        {".debug_macinfo",     section_type::macinfo},
+        {".debug_pubnames",    section_type::pubnames},
+        {".debug_pubtypes",    section_type::pubtypes},
+        {".debug_ranges",      section_type::ranges},
+        {".debug_rnglists",    section_type::rnglists},
+        {".debug_str",         section_type::str},
+        {".debug_str_offsets", section_type::str_offsets},
+        {".debug_types",       section_type::types},
 };
 
 bool
