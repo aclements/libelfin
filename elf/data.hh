@@ -490,7 +490,7 @@ struct Sym<Elf32, Order>
         Elf32::Word   size;  // Size of object
         unsigned char info;  // Type and binding attributes
         unsigned char other; // Reserved
-        shn           shnxd; // Section table index
+        shn           shndx; // Section table index
 
         template<typename E2>
         void from(const E2 &o)
@@ -500,7 +500,7 @@ struct Sym<Elf32, Order>
                 size  = swizzle(o.size, o.order, order);
                 info  = o.info;
                 other = o.other;
-                shnxd = swizzle(o.shnxd, o.order, order);
+                shndx = swizzle(o.shndx, o.order, order);
         }
 
         stb binding() const
@@ -533,7 +533,7 @@ struct Sym<Elf64, Order>
         Elf64::Word   name;  // Symbol name (strtab offset)
         unsigned char info;  // Type and binding attributes
         unsigned char other; // Reserved
-        shn           shnxd; // Section table index
+        shn           shndx; // Section table index
         Elf64::Addr   value; // Symbol value (address)
         Elf64::Xword  size;  // Size of object
 
@@ -545,7 +545,7 @@ struct Sym<Elf64, Order>
                 size  = swizzle(o.size, o.order, order);
                 info  = o.info;
                 other = o.other;
-                shnxd = swizzle(o.shnxd, o.order, order);
+                shndx = swizzle(o.shndx, o.order, order);
         }
 
         stb binding() const
